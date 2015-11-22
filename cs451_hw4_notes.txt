@@ -1,0 +1,37 @@
+Sun. 11/22/15
+-------------
+
+BIG PICTURE (motion compensation):
+	- we have T[][] and Ref[][]
+	- divide T to macroBlks (DO NOT divide Ref[][] into macroBlks)
+	- iterate through each macroBlks of T to find the best mach
+	- once the best match is found, calculate motion vector
+	( - then calculate the difference pixel value ) 
+				<-- this is seperate
+
+/*
+ * - convert everything into gray scale image first - divide the original
+* img to 16 x 16- you can just store it into the file
+*/
+
+BIG PICTURE (sequential search):
+	- identify x,y
+	- go to ref frm, and do the search
+	- forloop of p
+	- store difference in an array
+	List<Integer> diffs = new LinkedList<Integer>();
+	for(i = 1; i <= p; i++){
+
+		diffs.add(compare T[x][y] with Ref[x-p][y-p] )// idx=0
+		diffs.add(compare T[x][y] with Ref[x][y-p]) // idx=1
+		diffs.add(compare T[x][y] with Ref[x+p][y-p]) // idx=2
+		diffs.add(compare T[x][y] with Ref[x-p][y] )// idx=3
+		diffs.add(compare T[x][y] with Ref[x][y] )// idx=4
+		diffs.add(compare T[x][y] with Ref[x+p][y]) // idx=5
+		diffs.add(compare T[x][y] with Ref[x-p][y+p])// idx=6
+		diffs.add(compare T[x][y] with Ref[x][y+p] // idx=7
+		diffs.add(compare T[x][y] with Ref[x+p][y+p])// idx=8
+	}	
+
+BIG PICTURE (logarithmic search):
+  
