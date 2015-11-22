@@ -35,3 +35,19 @@ BIG PICTURE (sequential search):
 
 BIG PICTURE (logarithmic search):
   
+  
+  findMinDiff() will do:
+	- per T[][] macroblock
+	- go through each (2p + 1)^2 block in Ref[][]
+		- find diff per searched block
+		- instantiate refFrmBlk and add to diffs array
+
+
+public float MAD( int[][] target, int[][] ref, int tx0, int ty0, 
+			int rx0, int ry0,int macroBlkSizeIn )
+
+
+- How do I test sequentialSearchMSD()?
+	- create a dummy image 2d arrays, target[4][4] and ref[4][4]
+		macroBlkSize = 2, 
+	- assign simple pixel values

@@ -1,5 +1,12 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Prep {
-	static int macroBlkSize = 16;
+	private int macroBlkSize = 16;
+	static final int MAD = 0;
+	static final int MSD = 1;
+	static final int SEQUENTIAL_SEARCH = 10;
+	static final int LOGARITHMIC_SEARCH = 20;
 
 	/*
 	 * motion vectors(dx, dy)
@@ -52,20 +59,45 @@ public class Prep {
 	}
 
 	/** Assume the feed is 16 x 16, only process one macro block */
-	public int[] sequentialSearch( int[][] reference, int[][] target )
+	public ReferenceFrameBlock sequentialSearchMSD( int[][] target,
+			int[][] reference, int tx0, int ty0, int p )
 	{
 		/*
 		 * If the difference between the target block and the candidate block at
 		 * the same position in the past frame is below some threshold then no
 		 * motion
 		 */
-		int[] bestMatch = new int[2];
+
+		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
+		for ( int i = 1; i <= p; i++ ) {
+
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0 - p, ty0 - p, macroBlkSize ) ) );
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0, ty0 - p, macroBlkSize ) ) );
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0 + p, ty0 - p, macroBlkSize ) ) );
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0 - p, ty0, macroBlkSize ) ) );
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0, ty0, macroBlkSize ) ) );
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0 + p, ty0, macroBlkSize ) ) );
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0 - p, ty0 + p, macroBlkSize ) ) );
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0, ty0 + p, macroBlkSize ) ) );
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0 + p, ty0 + p, macroBlkSize ) ) );
+
+		}
+
 		/*
 		 * [x-1][y-1] [x][y-1] [x+1][y-1] [x-1][y] [x][y] [x+1][y] [x-1][y+1]
 		 * [x][y+1] [x+1][y+1]
 		 */
 
-		return bestMatch;
+		return findMinDiff( diffs );
 	}
 
 	/**
@@ -75,6 +107,7 @@ public class Prep {
 	public int[] findBestMatchMacroBlock( int[][] reference, int[][] target,
 			int ay0, int bx0, int by0 )
 	{
+
 		// x,y coordinate of the best maching block in reference frame
 		int[] bestMatch = new int[2];
 
@@ -88,13 +121,14 @@ public class Prep {
 	}
 
 	/** Mean Absolute Difference A: current frame, B: reference frame */
-	public float MAD( int[][] A, int[][] B, int ax0, int ay0, int bx0, int by0,
-			int macroBlkSizeIn )
+	public float MAD( int[][] target, int[][] ref, int tx0, int ty0, int rx0,
+			int ry0, int macroBlkSizeIn )
 	{
 		float sum = 0;
 		for ( int p = 0; p < macroBlkSizeIn; p++ ) {
 			for ( int q = 0; q < macroBlkSizeIn; q++ ) {
-				sum += Math.abs( A[ay0 + p][ax0 + q] - B[by0 + p][bx0 + q] );
+				sum += Math.abs( target[ty0 + p][tx0 + q]
+						- ref[ry0 + p][rx0 + q] );
 			}
 		}
 		sum *= ( 1. / ( macroBlkSizeIn * macroBlkSizeIn ) );
@@ -102,19 +136,43 @@ public class Prep {
 	}
 
 	/** Mean Square Difference A: current frame, B: reference frame */
-	public float MSD( int[][] A, int[][] B, int ax0, int ay0, int bx0, int by0,
-			int macroBlkSizeIn )
+	public float MSD( int[][] target, int[][] ref, int tx0, int ty0, int rx0,
+			int ry0, int macroBlkSizeIn )
 	{
 		float sum = 0;
 		for ( int p = 0; p < macroBlkSizeIn; p++ ) {
 			for ( int q = 0; q < macroBlkSizeIn; q++ ) {
-				sum += Math.pow( A[ay0 + p][ax0 + q] - B[by0 + p][bx0 + q], 2 );
+				sum += Math.pow( target[ty0 + p][tx0 + q]
+						- ref[ry0 + p][rx0 + q], 2 );
 			}
 		}
 
 		sum *= ( 1. / ( macroBlkSizeIn * macroBlkSizeIn ) );
 
 		return sum;
+	}
+
+	public ReferenceFrameBlock findMinDiff( List<ReferenceFrameBlock> diffs )
+	{
+		ReferenceFrameBlock min = new ReferenceFrameBlock();
+		min.setDiffValue( Integer.MAX_VALUE );
+
+		for ( ReferenceFrameBlock i : diffs ) {
+			if ( min.getDiffValue() > i.getDiffValue() ) {
+				min = i;
+			}
+		}
+		return min;
+	}
+
+	public int getMacroBlkSize()
+	{
+		return macroBlkSize;
+	}
+
+	public void setMacroBlkSize( int macroBlkSize )
+	{
+		this.macroBlkSize = macroBlkSize;
 	}
 
 }

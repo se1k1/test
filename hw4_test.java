@@ -1,10 +1,31 @@
 import static org.junit.Assert.*;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.junit.Test;
 
 public class hw4_test {
+	// @Test
+	public void test_findMinDiff()
+	{
+		Prep prep = new Prep();
+		List<ReferenceFrameBlock> list = new LinkedList<ReferenceFrameBlock>();
+		list.add( new ReferenceFrameBlock( 0, 0, 10 ) );
+		list.add( new ReferenceFrameBlock( 1, 0, 20 ) );
+		list.add( new ReferenceFrameBlock( 2, 0, 3 ) );
+		list.add( new ReferenceFrameBlock( 0, 1, 4 ) );
+		list.add( new ReferenceFrameBlock( 1, 1, 5 ) );
+		list.add( new ReferenceFrameBlock( 2, 1, 6 ) );
+		list.add( new ReferenceFrameBlock( 0, 2, 7 ) );
+		list.add( new ReferenceFrameBlock( 1, 2, 8 ) );
+		list.add( new ReferenceFrameBlock( 2, 2, 9 ) );
 
-	@Test
+		ReferenceFrameBlock min = prep.findMinDiff( list );
+		System.out.println( min );
+	}
+
+	// @Test
 	public void testMAD_SAD()
 	{
 		Prep p = new Prep();
@@ -21,10 +42,10 @@ public class hw4_test {
 		{ 3, 2, 1, 2 },
 		{ 3, 2, 1, 1 } };
 
-//		System.out.println( p.MAD( A, B, 1, 0, 1, 0, 2 ) );
-//		System.out.println( p.MSD( A, B, 1, 0, 1, 0, 2 ) );
-//		System.out.println( p.MAD( A, B, 0, 0, 1, 2, 2 ) );
-//		System.out.println( p.MSD( A, B, 0, 0, 1, 2, 2 ) );
+		// System.out.println( p.MAD( A, B, 1, 0, 1, 0, 2 ) );
+		// System.out.println( p.MSD( A, B, 1, 0, 1, 0, 2 ) );
+		// System.out.println( p.MAD( A, B, 0, 0, 1, 2, 2 ) );
+		// System.out.println( p.MSD( A, B, 0, 0, 1, 2, 2 ) );
 		System.out.println( p.MAD( A, B, 0, 2, 0, 0, 2 ) );
 		System.out.println( p.MSD( A, B, 0, 2, 0, 0, 2 ) );
 	}
