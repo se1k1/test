@@ -72,10 +72,12 @@ public class Prep {
 	 * Assume the feed is 16 x 16, only process one macro block. Returns the
 	 * best matching frame
 	 */
-	public int[][] findBestMatchMacroBlock( int[][] reference, int[][] target,
+	public int[] findBestMatchMacroBlock( int[][] reference, int[][] target,
 			int ay0, int bx0, int by0 )
 	{
+		// x,y coordinate of the best maching block in reference frame
 		int[] bestMatch = new int[2];
+
 		for ( int p = 0; p < target.length; p++ ) {
 
 		}
