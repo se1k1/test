@@ -99,13 +99,63 @@ public class Prep {
 
 		return findMinDiff( diffs );
 	}
+	
+	/** DEBUG */
+	public ReferenceFrameBlock sequentialSearchMSD( int[][] target,
+			int[][] reference, int tx0, int ty0, int p, int macroBlkSize )
+	{
+		/*
+		 * If the difference between the target block and the candidate block at
+		 * the same position in the past frame is below some threshold then no
+		 * motion
+		 */
+
+		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
+		for ( int i = 1; i <= p; i++ ) {
+
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0 - p, ty0 - p, macroBlkSize ) ) );
+			
+			diffs.add( new ReferenceFrameBlock(  tx0, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0, ty0 - p, macroBlkSize ) ) );
+			
+			diffs.add( new ReferenceFrameBlock( tx0 + p, ty0 - p, MSD( target,
+					reference, tx0, ty0, tx0 + p, ty0 - p, macroBlkSize ) ) );
+			
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0, MSD( target,
+					reference, tx0, ty0, tx0 - p, ty0, macroBlkSize ) ) );
+			
+			diffs.add( new ReferenceFrameBlock( tx0, ty0, MSD( target,
+					reference, tx0, ty0, tx0, ty0, macroBlkSize ) ) );
+			
+			diffs.add( new ReferenceFrameBlock(  tx0 + p, ty0, MSD( target,
+					reference, tx0, ty0, tx0 + p, ty0, macroBlkSize ) ) );
+			
+			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 + p, MSD( target,
+					reference, tx0, ty0, tx0 - p, ty0 + p, macroBlkSize ) ) );
+			
+			diffs.add( new ReferenceFrameBlock( tx0, ty0 + p, MSD( target,
+					reference, tx0, ty0, tx0, ty0 + p, macroBlkSize ) ) );
+			
+			diffs.add( new ReferenceFrameBlock( tx0 + p, ty0 + p, MSD( target,
+					reference, tx0, ty0, tx0 + p, ty0 + p, macroBlkSize ) ) );
+
+		}
+
+		/*
+		 * [x-1][y-1] [x][y-1] [x+1][y-1] [x-1][y] [x][y] [x+1][y] [x-1][y+1]
+		 * [x][y+1] [x+1][y+1]
+		 */
+
+		return findMinDiff( diffs );
+	}
 
 	/**
 	 * Assume the feed is 16 x 16, only process one macro block. Returns the
 	 * best matching frame
 	 */
 	public int[] findBestMatchMacroBlock( int[][] reference, int[][] target,
-			int ay0, int bx0, int by0 )
+			int tx0,int ty0, int rx0, int ry0 )
 	{
 
 		// x,y coordinate of the best maching block in reference frame
