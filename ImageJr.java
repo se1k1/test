@@ -1102,4 +1102,19 @@ public class ImageJr extends Image {
 		}// end j loop
 		return f_of_ij;
 	}
+	
+	public Image array2DtoImageJr(int[][] imgArray){
+		
+		Image img = new ImageJr( imgArray[0].length, imgArray.length);	
+		int[] gray = new int[3];
+		for ( int i = 0; i < imgArray.length; i++ ) {
+			for ( int j = 0; j < imgArray[i].length; j++ ) {
+				for ( int j2 = 0; j2 < 3; j2++ ) {
+					gray[j2] = imgArray[j][i];
+					img.setPixel( i, j, gray );
+				}
+			}
+		}
+		return img;
+	}
 }

@@ -55,3 +55,40 @@ public float MAD( int[][] target, int[][] ref, int tx0, int ty0,
 	- get the best matcing ref block and printout min, x, y
 	
 - combining the different search criteria and different diff. measure criteria  
+===============
+Motion Compensation - Algorithm
+	•Given a sequence of frames (each have macroblocks) –
+	•Encode first frame as IntraFrame
+	•For each corresponding macroblock of next frame and current frame, find the difference.
+		–If difference less than threshold => no motion, find residual error
+		–If difference above threshold => may be motion, look in search range to find a matching block using matching criteria discussed above. Note motion vector and residual error
+		–If difference (or total residual error) is too large for a majority of macroblocks, and/or after regular intervals encode the current frame as an Intraframe and proceed to previous step
+================
+Motion Compensation - Encoding
+	•There are two things to encode here:
+		–Motion Vector for every macroblock
+		–Difference or residual for every macroblock
+	•Motion vectors are typically encoded losslessly (similar to JPEG lossless mode)
+	•The residuals e(x, y) are encoded lossy +lossless (DCT+Entropy) producing variable bit rate (VBR).
+	•If smooth motion or no motion:
+		–Motion prediction is good (residuals are small)
+		–Entropy coded with few bits
+	•If complex motion or change of scene:
+		–Motion prediction is bad (residual are large)
+		–Entropy coded with many bits	 
+===================
+Logarithmic Search Notes:
+public Point FindElement(int[][] matrix, int number) {
+    Point p = new Point(); // holds two integers and represents 
+                           // a position in the matrix.
+    int found = -1;
+    for(int i = 0; i < N; i++) {
+        found = binarySearch(matrix[i], number, 0, N);
+        if(found != -1) { 
+           p.setX(i); 
+           p.setY(found); 
+           return p; 
+        }
+    }
+    return null;
+}
