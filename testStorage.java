@@ -3,8 +3,29 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class testStorage {
+	// @Test
+	public void test_tograyRetImgJr() throws InterruptedException
+	{
 
-	@Test
+		ImageJr img = new ImageJr( "Ducky.ppm" );
+		ImageJr gray = img.toGray();
+		gray.display( "gray" );
+		Thread.sleep( 3000 );
+	}
+
+	// @Test
+	public void test_enlarge() throws InterruptedException
+	{
+		ImageJr img = new ImageJr( "redblack.ppm" );
+		Image large = img.enlargeImg( 3 );
+
+		img.display( "original" );
+		Thread.sleep( 2000 );
+		large.display( "large" );
+		Thread.sleep( 2000 );
+	}
+
+	// @Test
 	public void test()
 	{
 		fail( "Not yet implemented" );

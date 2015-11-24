@@ -7,7 +7,17 @@ import org.junit.Test;
 
 public class hw4_test {
 	
+	@Test
+	public void test_imageJrToarray2D() throws InterruptedException
+	{
 
+		ImageJr img = new ImageJr( "Ducky.ppm" );
+		int[][] imgArray = img.imageJrToarray2D( img );
+		ImageJr gray = (ImageJr) img.array2DtoImageJr( imgArray );
+		gray.display( "gray" );
+		Thread.sleep( 3000 );
+	}
+	
 	// @Test
 	public void test_sequentialSearchMAD()
 	{

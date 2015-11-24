@@ -492,17 +492,5 @@ public class Prep {
 		this.macroBlkSize = macroBlkSize;
 	}
 
-	public Image enlargeImg( Image img, int factor )
-	{
-
-		Image large = new ImageJr( img.getW(), img.getH() );
-		int[] rgb = new int[3];
-		for ( int y = 0; y < img.getH() * factor; y++ ) {
-			for ( int x = 0; x < img.getW() * factor; x++ ) {
-				img.getPixel( x / factor, y / factor, rgb );
-				large.setPixel( x, y, rgb );
-			}
-		}
-		return large;
-	}
+	
 }

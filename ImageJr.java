@@ -904,7 +904,6 @@ public class ImageJr extends Image {
 		/* 8 x 8 x 3 */
 		double[][] temp_ycbcr = new double[block_size][block_size];
 
-	
 		for ( int i = 0; i < ycbcr.length; i += block_size ) {
 			for ( int j = 0; j < ycbcr[i].length; j += block_size ) {
 
@@ -1008,7 +1007,7 @@ public class ImageJr extends Image {
 				F_of_uv[u][v] = ( ( c_of_u * c_of_v ) / 4 ) * sum;
 
 				if ( start_j != 8 ) {
-					
+
 				}
 				sum = 0;
 
@@ -1102,19 +1101,119 @@ public class ImageJr extends Image {
 		}// end j loop
 		return f_of_ij;
 	}
-	
-	public Image array2DtoImageJr(int[][] imgArray){
-		
-		Image img = new ImageJr( imgArray[0].length, imgArray.length);	
+
+	public Image enlargeImg( Image img, int factor )
+	{
+
+		Image large = new ImageJr( img.getW() * factor, img.getH() * factor );
+		int[] rgb = new int[3];
+		for ( int y = 0; y < img.getH() * factor; y++ ) {
+			for ( int x = 0; x < img.getW() * factor; x++ ) {
+				img.getPixel( x / factor, y / factor, rgb );
+				large.setPixel( x, y, rgb );
+			}
+		}
+		return large;
+	}
+
+	public Image enlargeImg( int factor )
+	{
+
+		Image large = new ImageJr( width * factor, height * factor );
+		int[] rgb = new int[3];
+		for ( int y = 0; y < height * factor; y++ ) {
+			for ( int x = 0; x < width * factor; x++ ) {
+				getPixel( x / factor, y / factor, rgb );
+				large.setPixel( x, y, rgb );
+			}
+		}
+		return large;
+	}
+
+	public Image array2DtoImageJr( int[][] imgArray )
+	{
+
+		Image img = new ImageJr( imgArray[0].length, imgArray.length );
 		int[] gray = new int[3];
 		for ( int i = 0; i < imgArray.length; i++ ) {
 			for ( int j = 0; j < imgArray[i].length; j++ ) {
 				for ( int j2 = 0; j2 < 3; j2++ ) {
-					gray[j2] = imgArray[j][i];
-					img.setPixel( i, j, gray );
+					gray[j2] = imgArray[i][j];
+					img.setPixel( j, i, gray );
 				}
 			}
 		}
 		return img;
+	}
+
+	public int[][] toGray( Image img )
+	{
+		int gray = 0;
+		int[] rgb = new int[3];
+		int[][] imgArray = new int[img.getH()][img.getW()];
+		for ( int i = 0; i < img.getH(); i++ ) {
+			for ( int j = 0; j < img.getW(); j++ ) {
+				img.getPixel( j, i, rgb );
+				gray = (int) Math.round( 0.299 * rgb[0] + 0.587 * rgb[1]
+						+ 0.114 * rgb[2] );
+				imgArray[i][j] = gray;
+			}
+		}
+		return imgArray;
+	}
+
+	public ImageJr toGray()
+	{
+
+		ImageJr gray = (ImageJr) deepCopyImage_ks( this );
+
+		int[] temp_rgb = new int[3];
+		int temp = 0;
+		for ( int x = 0; x < width; x++ ) {
+			for ( int y = 0; y < height; y++ ) {
+
+				getPixel( x, y, temp_rgb );
+
+				temp = (int) Math.round( ( .299 * temp_rgb[0] + .587
+						* temp_rgb[1] + .114 * temp_rgb[2] ) );
+
+				temp_rgb[0] = temp;
+				temp_rgb[1] = temp;
+				temp_rgb[2] = temp;
+
+				gray.setPixel( x, y, temp_rgb );
+			}
+		}
+		return gray;
+	}
+
+	public ImageJr deepCopyImage_ks( Image original_img )
+	{
+
+		Image clone = new ImageJr( original_img.width, original_img.height );
+		int[] temp_rgb = new int[3];
+
+		for ( int y = 0; y < height; y++ ) {
+			for ( int x = 0; x < width; x++ ) {
+				original_img.getPixel( x, y, temp_rgb );
+				clone.setPixel( x, y, temp_rgb );
+			}
+		}
+		return (ImageJr) clone;
+	}
+
+	public int[][] imageJrToarray2D( Image img )
+	{
+		ImageJr grayImg = ( (ImageJr) img ).toGray();
+		int[][] imgArray = new int[img.getH()][img.getW()];
+		int[] gray = new int[3];
+		for ( int i = 0; i < imgArray.length; i++ ) {
+			for ( int j = 0; j < imgArray[i].length; j++ ) {
+
+				grayImg.getPixel( j, i, gray );
+				imgArray[i][j] = gray[0];
+			}
+		}
+		return imgArray;
 	}
 }

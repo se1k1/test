@@ -50,5 +50,9 @@ public class ReferenceFrameBlock {
 				+ yTopLeft + "> diffValue=" + diffValue;
 	}
 	
+	public void displayRefFrmBlk(int macroBlkSize, Image refImg){
+		ImageJr img = new ImageJr(macroBlkSize, macroBlkSize);
+	}
+	
 
 }
