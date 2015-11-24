@@ -6,6 +6,12 @@ public class ReferenceFrameBlock {
 	{
 	}
 
+	public ReferenceFrameBlock( int x, int y )
+	{
+		xTopLeft = x;
+		yTopLeft = y;
+	}
+
 	public ReferenceFrameBlock( int x, int y, float diffVal )
 	{
 		xTopLeft = x;
@@ -46,13 +52,12 @@ public class ReferenceFrameBlock {
 	@Override
 	public String toString()
 	{
-		return "Re<" + xTopLeft + ", "
-				+ yTopLeft + "> diffValue=" + diffValue;
+		return "Re<" + xTopLeft + ", " + yTopLeft + "> diffValue=" + diffValue;
 	}
-	
-	public void displayRefFrmBlk(int macroBlkSize, Image refImg){
-		ImageJr img = new ImageJr(macroBlkSize, macroBlkSize);
+
+	public void displayRefFrmBlk( int macroBlkSize, Image refImg )
+	{
+		ImageJr img = new ImageJr( macroBlkSize, macroBlkSize );
 	}
-	
 
 }

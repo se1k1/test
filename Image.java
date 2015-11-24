@@ -1,5 +1,4 @@
 
-
 import java.io.*;
 import java.util.*;
 import java.awt.*;
@@ -77,6 +76,17 @@ public class Image {
 
 		for ( int i = 0; i < 3; i++ )
 			rgb[i] = (byte) irgb[i];
+
+		setPixel( x, y, rgb );
+	}
+
+	public void setPixel( int x, int y, int gray )
+	// set rgb values at (x,y)
+	{
+		byte[] rgb = new byte[3];
+
+		for ( int i = 0; i < 3; i++ )
+			rgb[i] = (byte) gray;
 
 		setPixel( x, y, rgb );
 	}

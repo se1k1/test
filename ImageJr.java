@@ -57,7 +57,7 @@ public class ImageJr extends Image {
 		return clone;
 	}
 
-	public Image copy_and_pad_image_ks()
+	public Image padImage()
 	{
 
 		int new_w = width + ( block_size - width % block_size );
@@ -74,7 +74,7 @@ public class ImageJr extends Image {
 		return m8;
 	}
 
-	public double[][] pad_array_ks( double[][] array )
+	public double[][] padImageArray( double[][] array )
 	{
 
 		int new_w = array[0].length
@@ -90,7 +90,7 @@ public class ImageJr extends Image {
 		return adjusted;
 	}
 
-	public ImageJr copy_and_pad_image_ks( ImageJr img )
+	public ImageJr padImage( ImageJr img )
 	{
 
 		int new_w = img.getW() + ( block_size - img.getW() % block_size );
@@ -107,7 +107,7 @@ public class ImageJr extends Image {
 		return m8;
 	}
 
-	public ImageJr de_pad_image( ImageJr img, int original_w, int original_h )
+	public ImageJr depadImage( ImageJr img, int original_w, int original_h )
 	{
 		int[] temp_rgb = new int[3];
 		ImageJr depadded = new ImageJr( original_w, original_h );
@@ -1201,11 +1201,25 @@ public class ImageJr extends Image {
 		}
 		return (ImageJr) clone;
 	}
-
-	public int[][] imageJrToarray2D( Image img )
+	
+	public int[][] imageJrTo2DArray( Image img )
 	{
 		ImageJr grayImg = ( (ImageJr) img ).toGray();
 		int[][] imgArray = new int[img.getH()][img.getW()];
+		int[] gray = new int[3];
+		for ( int i = 0; i < imgArray.length; i++ ) {
+			for ( int j = 0; j < imgArray[i].length; j++ ) {
+
+				grayImg.getPixel( j, i, gray );
+				imgArray[i][j] = gray[0];
+			}
+		}
+		return imgArray;
+	}
+	public int[][] imageJrTo2DArray( )
+	{
+		ImageJr grayImg = toGray();
+		int[][] imgArray = new int[height][width];
 		int[] gray = new int[3];
 		for ( int i = 0; i < imgArray.length; i++ ) {
 			for ( int j = 0; j < imgArray[i].length; j++ ) {

@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Prep {
-	private int macroBlkSize = 16;
+	// private int macroBlkSize = 16;
 	static final int MAD = 0;
 	static final int MSD = 1;
 	static final int SEQUENTIAL_SEARCH = 10;
@@ -32,13 +32,47 @@ public class Prep {
 	 * e(x,y) = cn+1(x,y) - cn(x-dx ,y-dy ) k: Search Size i1: reference frame
 	 * i2: target frame
 	 * */
-	public void MC( int[][] i0, int[][] i1, int x, int y, int size, int k,
-			int matchingCriteria, int[][] residual, int[] motionVector )
+	public void MC( ImageJr targetImg, ImageJr referenceImg, int size, int p,
+			int matchingCriteria, int[][] residual, int[] motionVector,
+			int macroBlkSize )
 	{
-		int[] bestMatch = new int[2];
-		float e = 0;
-		int dx, dy;
+		// find best matched (or predicted) block --- iterate per macroblock
+		// forloop
+		// compute motion vector
+		// compute residual
+		ImageJr errorImg = new ImageJr( targetImg.getW(), targetImg.getH() );
+		int[][] targetFrm = targetImg.imageJrTo2DArray();
+		int[][] referenceFrm = referenceImg.imageJrTo2DArray();
+		/* [0] = error value, [1] = motion vector x, [2] = motion vector y */
+		int[][][] motionCompensation = new int[targetImg.getH()][targetImg
+				.getW()][3];
+		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
 
+		for ( int y = 0; y < targetFrm.length; y++ ) {
+			for ( int x = 0; x < targetFrm[y].length; x++ ) {
+				if ( x % macroBlkSize == 0 && y % macroBlkSize == 0 ) {
+
+					// find predicted block
+					bestMatch = sequentialSearchMAD( targetFrm, referenceFrm,
+							x, y, p, macroBlkSize );
+
+					// store motion vector x
+					motionCompensation[y][x][1] = x - bestMatch.getxTopLeft();
+
+					// store motion vector y
+					motionCompensation[y][x][2] = y - bestMatch.getyTopLeft();
+				}
+
+				// store error_pixel_value
+				motionCompensation[y][x][0] = targetFrm[y][x]
+						- referenceFrm[bestMatch.getxTopLeft() + x
+								% macroBlkSize][bestMatch.getxTopLeft() + x
+								% macroBlkSize];
+				errorImg.setPixel( x, y, motionCompensation[y][x][0] );
+			}
+		}
+
+	
 		/*
 		 * - use appropriate search criteria to get the best matching macroblock
 		 * from the reference frame -
@@ -58,57 +92,6 @@ public class Prep {
 		return bestMatch;
 	}
 
-	/** Assume the feed is 16 x 16, only process one macro block */
-	public ReferenceFrameBlock sequentialSearchMAD( int[][] target,
-			int[][] reference, int tx0, int ty0, int p )
-	{
-		/*
-		 * If the difference between the target block and the candidate block at
-		 * the same position in the past frame is below some threshold then no
-		 * motion
-		 */
-		float threshold = (float) 0.001;
-		if ( meanAbsDiff( target, reference, tx0, ty0, tx0, ty0, macroBlkSize ) < threshold ) {
-			return new ReferenceFrameBlock( tx0, ty0, meanAbsDiff( target,
-					reference, tx0, ty0, tx0, ty0, macroBlkSize ) );
-		}
-
-		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
-		for ( int i = 1; i <= p; i++ ) {
-
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanAbsDiff( target, reference, tx0, ty0, tx0 - p, ty0 - p,
-							macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, meanAbsDiff(
-					target, reference, tx0, ty0, tx0, ty0 - p, macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanAbsDiff( target, reference, tx0, ty0, tx0 + p, ty0 - p,
-							macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, meanAbsDiff(
-					target, reference, tx0, ty0, tx0 - p, ty0, macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, meanAbsDiff(
-					target, reference, tx0, ty0, tx0, ty0, macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, meanAbsDiff(
-					target, reference, tx0, ty0, tx0 + p, ty0, macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanAbsDiff( target, reference, tx0, ty0, tx0 - p, ty0 + p,
-							macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p, meanAbsDiff(
-					target, reference, tx0, ty0, tx0, ty0 + p, macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanAbsDiff( target, reference, tx0, ty0, tx0 + p, ty0 + p,
-							macroBlkSize ) ) );
-
-		}
-
-		/*
-		 * [x-1][y-1] [x][y-1] [x+1][y-1] [x-1][y] [x][y] [x+1][y] [x-1][y+1]
-		 * [x][y+1] [x+1][y+1]
-		 */
-
-		return findMinDiff( diffs );
-	}
-
 	/** Search for best maching block using sequesntial search and MAD */
 	public ReferenceFrameBlock sequentialSearchMAD( int[][] target,
 			int[][] reference, int tx0, int ty0, int p, int macroBlkSize )
@@ -122,9 +105,11 @@ public class Prep {
 		 * motion
 		 */
 		float threshold = (float) 0.001;
-		if ( meanAbsDiff( target, reference, tx0, ty0, tx0, ty0, macroBlkSize ) < threshold ) {
-			return new ReferenceFrameBlock( tx0, ty0, meanSquareDiff( target,
-					reference, tx0, ty0, tx0, ty0, macroBlkSize ) );
+		ReferenceFrameBlock sameLoc = new ReferenceFrameBlock( tx0, ty0,
+				meanSquareDiff( target, reference, tx0, ty0, tx0, ty0,
+						macroBlkSize ) );
+		if ( sameLoc.getDiffValue() < threshold ) {
+			return sameLoc;
 		}
 
 		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
@@ -144,8 +129,7 @@ public class Prep {
 			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0, meanAbsDiff(
 					target, reference, tx0, ty0, tx0 - p, ty0, macroBlkSize ) ) );
 
-			diffs.add( new ReferenceFrameBlock( tx0, ty0, meanAbsDiff( target,
-					reference, tx0, ty0, tx0, ty0, macroBlkSize ) ) );
+			diffs.add( sameLoc );
 
 			diffs.add( new ReferenceFrameBlock( tx0 + p, ty0, meanAbsDiff(
 					target, reference, tx0, ty0, tx0 + p, ty0, macroBlkSize ) ) );
@@ -164,57 +148,6 @@ public class Prep {
 		return findMinDiff( diffs );
 	}
 
-	/** DEBUG Assume the feed is 16 x 16, only process one macro block */
-	public ReferenceFrameBlock sequentialSearchMSD( int[][] target,
-			int[][] reference, int tx0, int ty0, int p )
-	{
-		/*
-		 * If the difference between the target block and the candidate block at
-		 * the same position in the past frame is below some threshold then no
-		 * motion
-		 */
-
-		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
-		for ( int i = 1; i <= p; i++ ) {
-
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0 - p, ty0
-							- p, macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0, ty0 - p,
-							macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0 + p, ty0
-							- p, macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0 - p, ty0,
-							macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0, ty0,
-							macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0 + p, ty0,
-							macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0 - p, ty0
-							+ p, macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0, ty0 + p,
-							macroBlkSize ) ) );
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0 + p, ty0
-							+ p, macroBlkSize ) ) );
-
-		}
-
-		/*
-		 * [x-1][y-1] [x][y-1] [x+1][y-1] [x-1][y] [x][y] [x+1][y] [x-1][y+1]
-		 * [x][y+1] [x+1][y+1]
-		 */
-
-		return findMinDiff( diffs );
-	}
-
 	/** Search for best maching block using sequesntial search and MSD */
 	public ReferenceFrameBlock sequentialSearchMSD( int[][] target,
 			int[][] reference, int tx0, int ty0, int p, int macroBlkSize )
@@ -225,9 +158,11 @@ public class Prep {
 		 * motion
 		 */
 		float threshold = (float) 0.001;
-		if ( meanAbsDiff( target, reference, tx0, ty0, tx0, ty0, macroBlkSize ) < threshold ) {
-			return new ReferenceFrameBlock( tx0, ty0, meanSquareDiff( target,
-					reference, tx0, ty0, tx0, ty0, macroBlkSize ) );
+		ReferenceFrameBlock sameLoc = new ReferenceFrameBlock( tx0, ty0,
+				meanSquareDiff( target, reference, tx0, ty0, tx0, ty0,
+						macroBlkSize ) );
+		if ( sameLoc.getDiffValue() < threshold ) {
+			return sameLoc;
 		}
 
 		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
@@ -247,8 +182,7 @@ public class Prep {
 			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0, meanSquareDiff(
 					target, reference, tx0, ty0, tx0 - p, ty0, macroBlkSize ) ) );
 
-			diffs.add( new ReferenceFrameBlock( tx0, ty0, meanSquareDiff(
-					target, reference, tx0, ty0, tx0, ty0, macroBlkSize ) ) );
+			diffs.add( sameLoc );
 
 			diffs.add( new ReferenceFrameBlock( tx0 + p, ty0, meanSquareDiff(
 					target, reference, tx0, ty0, tx0 + p, ty0, macroBlkSize ) ) );
@@ -401,26 +335,6 @@ public class Prep {
 		return findMinDiff( diffs );
 	}
 
-	/**
-	 * Assume the feed is 16 x 16, only process one macro block. Returns the
-	 * best matching frame
-	 */
-	public ReferenceFrameBlock findBestMatchMacroBlock( int[][] reference,
-			int[][] target, int tx0, int ty0, int macroBlkSize, int searchSize,
-			int searchCriteria )
-	{
-
-		/*
-		 * searchCriteria: 1: sequential search MAD 2: sequential search MSD 3:
-		 * logarithmic search MAD 4: logarithmic search MSD
-		 */
-		// x,y coordinate of the best maching block in reference frame
-		ReferenceFrameBlock bestMatch = sequentialSearchMAD( target, reference,
-				tx0, ty0, searchSize );
-
-		return bestMatch;
-	}
-
 	public int[][] toGray( Image img )
 	{
 		int gray = 0;
@@ -482,15 +396,32 @@ public class Prep {
 		return min;
 	}
 
-	public int getMacroBlkSize()
+	public void display_macroBlock( int[][] frm, ReferenceFrameBlock ref,
+			int macroBlkSize, int enlargeFactor ) throws InterruptedException
 	{
-		return macroBlkSize;
+		ImageJr img = new ImageJr( macroBlkSize, macroBlkSize );
+		int[] rgb = new int[3];
+		for ( int i = 0; i < macroBlkSize; i++ ) {
+			for ( int j = 0; j < macroBlkSize; j++ ) {
+				System.out.println( "x,y=" + ref.getxTopLeft() + j + ", "
+						+ ref.getyTopLeft() + i );
+				for ( int j2 = 0; j2 < rgb.length; j2++ ) {
+					rgb[j2] = frm[ref.getxTopLeft() + j][ref.getyTopLeft() + i];
+				}
+
+				img.setPixel( j, i, rgb );
+			}
+		}
+		ImageJr large = (ImageJr) img.enlargeImg( enlargeFactor );
+		large.display( "macroblock (" + ref.getxTopLeft() + ", "
+				+ ref.getyTopLeft() + ")" );
+		Thread.sleep( 3000 );
 	}
 
-	public void setMacroBlkSize( int macroBlkSize )
+	public int[][] computeError( ReferenceFrameBlock bestMatch, int[][] target )
 	{
-		this.macroBlkSize = macroBlkSize;
+		return target;
+		// error_pixel_value = |pixel_in_target_block –
+		// corresponding_pixel_in_the predicted_block|
 	}
-
-	
 }

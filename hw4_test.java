@@ -6,18 +6,28 @@ import java.util.List;
 import org.junit.Test;
 
 public class hw4_test {
-	
+
 	@Test
+	public void test_display_macroblock() throws InterruptedException
+	{
+		int x =70, y = 70;
+		Prep pp = new Prep();
+		ImageJr ij = new ImageJr();
+		ReferenceFrameBlock r = new ReferenceFrameBlock( x, y );
+		pp.display_macroBlock(
+				ij.imageJrTo2DArray( new ImageJr( "Ducky.ppm" ) ), r, 16, 10 );
+	}// @Test
+
 	public void test_imageJrToarray2D() throws InterruptedException
 	{
 
 		ImageJr img = new ImageJr( "Ducky.ppm" );
-		int[][] imgArray = img.imageJrToarray2D( img );
+		int[][] imgArray = img.imageJrTo2DArray( img );
 		ImageJr gray = (ImageJr) img.array2DtoImageJr( imgArray );
 		gray.display( "gray" );
 		Thread.sleep( 3000 );
 	}
-	
+
 	// @Test
 	public void test_sequentialSearchMAD()
 	{
