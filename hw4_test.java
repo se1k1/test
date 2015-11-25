@@ -6,17 +6,73 @@ import java.util.List;
 import org.junit.Test;
 
 public class hw4_test {
+	// @Test
+	public void test_sequentialSearchMAD_edges()
+	{
+		/*
+		 * How do I test sequentialSearchMSD()? - create a dummy image 2d
+		 * arrays, target[4][4] and ref[4][4] macroBlkSize = 2, - assign simple
+		 * pixel values - get the best matcing ref block and printout min, x, y
+		 */
+		Prep pr = new Prep();
+		int tx0 = 2, ty0 = 2, p = 1;
+		int macroBlkSize = 2;
 
-	@Test
+		int[][] target =
+		{
+		{ 1,2,3,4 },
+		{ 5,6,7,8 },
+		{ 9,10,11,12 },
+		{ 13, 14, 15, 16 } };
+
+		int[][] ref =
+		{
+		{ 6, 7, 2, 3 },
+		{ 10, 11, 6, 10 },
+		{ 1, 2, 3, 1 },
+		{ 1, 6, 7, 3 } };
+
+		System.out.println( pr.sequentialSearchMAD( target, ref, tx0, ty0, p,
+				macroBlkSize ).toString() );
+
+	}
+
+	 @Test
+	public void test_mc() throws InterruptedException
+	{
+		int x = 70, y = 70;
+		Prep pp = new Prep();
+		String targetName = "Walk_022.ppm";
+		String refName = "Walk_020.ppm";
+
+		ImageJr t22 = new ImageJr( targetName );
+		ImageJr r20 = new ImageJr( refName );
+		ImageJr residual = new ImageJr();
+		int[][][] motionCompensation = null;
+		int macroBlkSize = 16;
+		// ij.display_ks( "walk 57" );
+		// Thread.sleep( 3000 );\
+		/*
+		 * MC( ImageJr targetImg, String imgnamgeT, ImageJr referenceImg, String
+		 * imgnamgeRef, int p, int matchingCriteria, ImageJr residualImg,
+		 * int[][][] motionCompensation, int macroBlkSize )
+		 */
+		pp.MC( t22, targetName, r20, refName, 1, 0, residual,
+				motionCompensation, macroBlkSize );
+	}
+
+	// @Test
 	public void test_display_macroblock() throws InterruptedException
 	{
-		int x =70, y = 70;
+		int x = 70, y = 70;
 		Prep pp = new Prep();
 		ImageJr ij = new ImageJr();
 		ReferenceFrameBlock r = new ReferenceFrameBlock( x, y );
 		pp.display_macroBlock(
 				ij.imageJrTo2DArray( new ImageJr( "Ducky.ppm" ) ), r, 16, 10 );
-	}// @Test
+	}
+
+	// @Test
 
 	public void test_imageJrToarray2D() throws InterruptedException
 	{
@@ -109,7 +165,7 @@ public class hw4_test {
 		System.out.println( min );
 	}
 
-	// @Test
+	//@Test
 	public void testMAD_SAD()
 	{
 		Prep p = new Prep();

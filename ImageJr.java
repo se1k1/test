@@ -57,12 +57,12 @@ public class ImageJr extends Image {
 		return clone;
 	}
 
-	public Image padImage()
+	public ImageJr padImage()
 	{
 
 		int new_w = width + ( block_size - width % block_size );
 		int new_h = height + ( block_size - height % block_size );
-		Image m8 = new Image( new_w, new_h );
+		ImageJr m8 = new ImageJr( new_w, new_h );
 		int[] temp_rgb = new int[3];
 
 		for ( int y = 0; y < height; y++ ) {
@@ -114,6 +114,18 @@ public class ImageJr extends Image {
 		for ( int y = 0; y < original_h; y++ ) {
 			for ( int x = 0; x < original_w; x++ ) {
 				img.getPixel( x, y, temp_rgb );
+				depadded.setPixel( x, y, temp_rgb );
+			}
+		}
+		return depadded;
+	}
+	public ImageJr depadImage(  int original_w, int original_h )
+	{
+		int[] temp_rgb = new int[3];
+		ImageJr depadded = new ImageJr( original_w, original_h );
+		for ( int y = 0; y < original_h; y++ ) {
+			for ( int x = 0; x < original_w; x++ ) {
+				this.getPixel( x, y, temp_rgb );
 				depadded.setPixel( x, y, temp_rgb );
 			}
 		}

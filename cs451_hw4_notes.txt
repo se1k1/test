@@ -1,3 +1,9 @@
+Tue. 11/24/15
+-------------
+
+toDo:
+- MC(), give matchingCriteria options
+
 Sun. 11/22/15
 -------------
 
