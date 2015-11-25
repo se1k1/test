@@ -4,6 +4,21 @@ import org.junit.Test;
 
 public class testStorage {
 	// @Test
+	public void test_avg_and_mapping()
+	{
+		Prep pp = new Prep();
+		int[][] resid =
+		{
+		{ -2, 3, -2 },
+		{ 1, 0, 3 },
+		{ -4, 3, 2 } };
+
+		System.out.println( pp.getAvgPixValue( resid ) );
+		ImageJr res = new ImageJr();
+
+	}
+
+	// @Test
 	public void test_tograyRetImgJr() throws InterruptedException
 	{
 

@@ -6,6 +6,9 @@ import java.util.List;
 import org.junit.Test;
 
 public class hw4_test {
+
+
+
 	// @Test
 	public void test_sequentialSearchMAD_edges()
 	{
@@ -20,9 +23,9 @@ public class hw4_test {
 
 		int[][] target =
 		{
-		{ 1,2,3,4 },
-		{ 5,6,7,8 },
-		{ 9,10,11,12 },
+		{ 1, 2, 3, 4 },
+		{ 5, 6, 7, 8 },
+		{ 9, 10, 11, 12 },
 		{ 13, 14, 15, 16 } };
 
 		int[][] ref =
@@ -32,6 +35,11 @@ public class hw4_test {
 		{ 1, 2, 3, 1 },
 		{ 1, 6, 7, 3 } };
 
+		
+		
+		
+		
+		
 		System.out.println( pr.sequentialSearchMAD( target, ref, tx0, ty0, p,
 				macroBlkSize ).toString() );
 
@@ -42,8 +50,10 @@ public class hw4_test {
 	{
 		int x = 70, y = 70;
 		Prep pp = new Prep();
-		String targetName = "Walk_022.ppm";
-		String refName = "Walk_020.ppm";
+//		String targetName = "Walk_057.ppm";
+//		String refName = "Walk_060.ppm";
+		String targetName = "Walk_020.ppm";
+		String refName = "Walk_022.ppm";
 
 		ImageJr t22 = new ImageJr( targetName );
 		ImageJr r20 = new ImageJr( refName );
@@ -57,7 +67,7 @@ public class hw4_test {
 		 * imgnamgeRef, int p, int matchingCriteria, ImageJr residualImg,
 		 * int[][][] motionCompensation, int macroBlkSize )
 		 */
-		pp.MC( t22, targetName, r20, refName, 1, 0, residual,
+		pp.MC( t22, targetName, r20, refName, 12, 0, residual,
 				motionCompensation, macroBlkSize );
 	}
 
@@ -165,7 +175,7 @@ public class hw4_test {
 		System.out.println( min );
 	}
 
-	//@Test
+	// @Test
 	public void testMAD_SAD()
 	{
 		Prep p = new Prep();

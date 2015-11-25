@@ -39,7 +39,7 @@ public class Prep {
 			ImageJr residualImg, int[][][] motionCompensation, int macroBlkSize )
 			throws InterruptedException
 	{
-		int avgPixValue = 0;
+		float avgPixValue = 0;
 		ImageJr padTarget = targetImg.padImage();
 		ImageJr padRef = referenceImg.padImage();
 		ImageJr errorImg = new ImageJr( padTarget.getW(), padTarget.getH() );
@@ -51,9 +51,9 @@ public class Prep {
 
 		for ( int y = 0; y < targetFrm.length; y++ ) {
 			for ( int x = 0; x < targetFrm[y].length; x++ ) {
-				
+
 				avgPixValue += targetFrm[y][x];
-				
+
 				if ( x % macroBlkSize == 0 && y % macroBlkSize == 0 ) {
 
 					// find predicted block
@@ -78,14 +78,15 @@ public class Prep {
 				// DEBUG
 				System.out.println( "MC(): x,y=" + x + "," + y );
 				System.out.println( "Best Match: " + bestMatch );
+								
 				errorImg.setPixel( x, y, motionCompensation[y][x][0] );
 			}
 		}
-		
-		avgPixValue = avgPixValue/targetImg.getW()*targetImg.getH();
-		
-		ImageJr depaddedErrorImg = errorImg.depadImage( targetImg.getW(),
-				targetImg.getH() );
+
+	
+		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(), targetImg.getH() );
+	//	avgPixValue = getAvgPixValue( errorDepadded );
+		ImageJr mappedError = mapResidual( errorDepadded );
 		/*
 		 * - use appropriate search criteria to get the best matching macroblock
 		 * from the reference frame -
@@ -101,7 +102,7 @@ public class Prep {
 		for ( int i = 0; i < motionCompensation.length; i += macroBlkSize ) {
 			for ( int j = 0; j < motionCompensation[0].length; j += macroBlkSize ) {
 				System.out.print( "[ " + motionCompensation[i][j][1] + ", "
-						+ motionCompensation[i][j][1] + " ] " );
+						+ motionCompensation[i][j][2] + " ] " );
 			}
 			System.out.println();
 		}
@@ -111,10 +112,17 @@ public class Prep {
 		 * -1, 0] [ 1, 1] [ 10, 0] [ -4, 1]
 		 */
 
-		depaddedErrorImg.display( "error image" );
-		Thread.sleep( 5000 );
+		//mappedError.display( "error image" );
+		//Thread.sleep( 5000 );
 	}// note that macroblock sizse would affect the compression ratio
 
+	public void displayImgJrPixelValues(ImageJr img){
+		for ( int i = 0; i < img.getH(); i++ ) {
+			for ( int j = 0; j < img.getW(); j++ ) {
+				img.displayPixelValue( j, i );				
+			}
+		}		
+	}
 	public int[] logarithmicSearch( int[][] prev, int[][] target )
 	{
 
@@ -141,7 +149,7 @@ public class Prep {
 		 */
 		float threshold = (float) 0.001;
 		ReferenceFrameBlock sameLoc = new ReferenceFrameBlock( tx0, ty0,
-				meanAbsDiff(  target, reference, tx0, ty0, tx0, ty0,
+				meanAbsDiff( target, reference, tx0, ty0, tx0, ty0,
 						macroBlkSize ) );
 		// if ( sameLoc.getDiffValue() < threshold ) {
 		// System.out.println("same block error < threashold");
@@ -188,8 +196,9 @@ public class Prep {
 			}
 			if ( tx0 - p > -1 && tx0 - p < reference.length && ty0 + p > -1
 					&& ty0 + p < reference.length ) {
+				
 				diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 + p,
-						meanSquareDiff( target, reference, tx0, ty0, tx0 - p,
+						meanAbsDiff( target, reference, tx0, ty0, tx0 - p,
 								ty0 + p, macroBlkSize ) ) );
 				System.out.println( "compare 7" );
 			}
@@ -432,7 +441,7 @@ public class Prep {
 				}
 			}
 		}
-	//	System.out.println( "sum, counter = " + sum + ", " + counter );
+		// System.out.println( "sum, counter = " + sum + ", " + counter );
 		sum *= ( 1. / counter );
 		return sum;
 	}
@@ -450,6 +459,12 @@ public class Prep {
 					sum += Math.pow( target[ty0 + p][tx0 + q]
 							- ref[ry0 + p][rx0 + q], 2 );
 				counter++;
+				if(tx0==2 && ty0==2 && rx0==1 && ry0==3){
+					System.out.println("sum = " + sum);
+					System.out.println("counter = " + counter);
+					System.out.println("target[ty0 + p][tx0 + q]"+target[ty0 + p][tx0 + q]);
+					System.out.println("ref[ry0 + p][rx0 + q]"+ref[ry0 + p][rx0 + q]);
+				}
 			}
 		}
 
@@ -499,13 +514,69 @@ public class Prep {
 		// error_pixel_value = |pixel_in_target_block –
 		// corresponding_pixel_in_the predicted_block|
 	}
-//	public int getAvgPixValue(int[][][] residual){
-//		int sum=0;
-//		for ( int i = 0; i < residual.length; i++ ) {
-//			for ( int j = 0; j < residual[i].length; j++ ) {
-//				
-//			}
-//		}
-//		return sum/(residual[0].length * residual.length);
-//	}
+
+	public float getAvgPixValue( int[][] residual )
+	{
+		float sum = 0;
+		for ( int i = 0; i < residual.length; i++ ) {
+			for ( int j = 0; j < residual[i].length; j++ ) {
+				sum += residual[i][j];
+			}
+		}
+		
+		return sum / ( residual[0].length * residual.length );
+	}
+	
+	public float getAvgPixValue( int[][][] residual )
+	{
+		float sum = 0;
+		for ( int i = 0; i < residual.length; i++ ) {
+			for ( int j = 0; j < residual[i].length; j++ ) {
+				sum += residual[i][j][0];
+			}
+		}
+		return sum / ( residual[0].length * residual.length );
+	}
+
+	public float getAvgPixValue( ImageJr residual )
+	{
+		float sum = 0;
+		for ( int i = 0; i < residual.getH(); i++ ) {
+			for ( int j = 0; j < residual.getW(); j++ ) {
+
+				sum += residual.getR( j, i );
+			}
+		}
+		return sum / ( residual.getH() * residual.getW() );
+	}
+
+	public ImageJr mapResidual( int[][][] residual )
+	{
+		ImageJr mappedResidual = new ImageJr( residual[0].length,
+				residual.length );
+		float avg = getAvgPixValue( residual );
+		int value = 0;
+		for ( int i = 0; i < residual.length; i++ ) {
+			for ( int j = 0; j < residual[0].length; j++ ) {
+				value = residual[i][j][0] > avg ? 255 : 0;
+				mappedResidual.setPixel( j, i, value );
+			}
+		}
+		return mappedResidual;
+	}
+
+	public ImageJr mapResidual( ImageJr residual )
+	{
+		ImageJr mappedResidual = new ImageJr( residual.getW(),
+				residual.getH() );
+		float avg = getAvgPixValue( residual );
+		int value = 0;
+		for ( int i = 0; i < residual.getH(); i++ ) {
+			for ( int j = 0; j < residual.getW(); j++ ) {
+				value = residual.getR( j, i ) > avg ? 255 : 0;
+				mappedResidual.setPixel( j, i, value );
+			}
+		}
+		return mappedResidual;
+	}
 }
