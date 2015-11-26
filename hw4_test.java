@@ -7,7 +7,52 @@ import org.junit.Test;
 
 public class hw4_test {
 
-	
+	//@Test
+	public void test_mc_with_synthetic_values() throws InterruptedException
+	{
+
+		int[][] target =
+		{
+		{ 1, 2, 3, 4 },
+		{ 5, 6, 7, 8 },
+		{ 9, 10, 11, 12 },
+		{ 13, 14, 15, 16 } };
+
+		int[][] ref =
+		{
+		{ 6, 7, 2, 3 },
+		{ 10, 11, 6, 10 },
+		{ 1, 2, 3, 1 },
+		{ 1, 6, 7, 3 } };
+
+		int x = 70, y = 70, k = 2;
+
+		// int[][] T = new int[target.length][target[0].length], R = new
+		// int[ref.length][ref[0].length];
+		Prep pp = new Prep();
+		int[][] T = repeateArrayContents( target, 2 );
+		int[][] R = repeateArrayContents( ref, 2 );
+
+		ImageJr residual = new ImageJr();
+		ImageJr targetImg = (ImageJr) residual.array2DtoImageJr( T );
+		ImageJr refImg = (ImageJr) residual.array2DtoImageJr( R );
+		System.out.println( "T:" );
+		pp.print2DArray( T );
+		System.out.println( "R:" );
+		pp.print2DArray( R );
+		int[][][] motionCompensation = new int[1][1][1];
+		int macroBlkSize = 2;
+		// ij.display_ks( "walk 57" );
+		// Thread.sleep( 3000 );
+		/*
+		 * MC( ImageJr targetImg, String imgnamgeT, ImageJr referenceImg, String
+		 * imgnamgeRef, int p, int matchingCriteria, ImageJr residualImg,
+		 * int[][][] motionCompensation, int macroBlkSize )
+		 */
+		pp.MC( targetImg, "target", refImg, "reference", 2, 0, residual,
+				motionCompensation, macroBlkSize );
+
+	}
 
 	 @Test
 	public void test_mc() throws InterruptedException
@@ -25,83 +70,75 @@ public class hw4_test {
 		int[][][] motionCompensation = new int[1][1][1];
 		int macroBlkSize = 16;
 		// ij.display_ks( "walk 57" );
-		// Thread.sleep( 3000 );\
-		/*
-		 * MC( ImageJr targetImg, String imgnamgeT, ImageJr referenceImg, String
-		 * imgnamgeRef, int p, int matchingCriteria, ImageJr residualImg,
-		 * int[][][] motionCompensation, int macroBlkSize )
-		 */
+		// Thread.sleep( 3000 );
+		
 		pp.MC( t22, targetName, r20, refName, 12, 0, residual,
 				motionCompensation, macroBlkSize );
 
-		for ( int i = 0; i < motionCompensation.length; i++ ) {
-			for ( int j = 0; j < motionCompensation[0].length; j++ ) {
-				System.out.print( motionCompensation[i][j][0] + " " );
-			}
-			System.out.println();
-		}
 	}
-	 
+
 	// @Test
-		public void test_sequentialSearchMSD_edges()
+	public void test_sequentialSearchMSD_edges()
+	{
+		/*
+		 * How do I test sequentialSearchMSD()? - create a dummy image 2d
+		 * arrays, target[4][4] and ref[4][4] macroBlkSize = 2, - assign simple
+		 * pixel values - get the best matcing ref block and printout min, x, y
+		 */
+		Prep pr = new Prep();
+		int tx0 = 2, ty0 = 2, p = 1;
+		int macroBlkSize = 2;
+
+		int[][] target =
 		{
-			/*
-			 * How do I test sequentialSearchMSD()? - create a dummy image 2d
-			 * arrays, target[4][4] and ref[4][4] macroBlkSize = 2, - assign simple
-			 * pixel values - get the best matcing ref block and printout min, x, y
-			 */
-			Prep pr = new Prep();
-			int tx0 = 2, ty0 = 2, p = 1;
-			int macroBlkSize = 2;
+		{ 1, 2, 3, 4 },
+		{ 5, 6, 7, 8 },
+		{ 9, 10, 11, 12 },
+		{ 13, 14, 15, 16 } };
 
-			int[][] target =
-			{
-			{ 1, 2, 3, 4 },
-			{ 5, 6, 7, 8 },
-			{ 9, 10, 11, 12 },
-			{ 13, 14, 15, 16 } };
+		int[][] ref =
+		{
+		{ 6, 7, 2, 3 },
+		{ 10, 11, 6, 10 },
+		{ 1, 2, 3, 1 },
+		{ 1, 6, 7, 3 } };
 
-			int[][] ref =
-			{
-			{ 6, 7, 2, 3 },
-			{ 10, 11, 6, 10 },
-			{ 1, 2, 3, 1 },
-			{ 1, 6, 7, 3 } };
+		System.out.println( pr.sequentialSearchMSD( target, ref, tx0, ty0, p,
+				macroBlkSize ).toString() );
 
-			System.out.println( pr.sequentialSearchMSD( target, ref, tx0, ty0, p,
-					macroBlkSize ).toString() );
+	}
 
-		}
 	// @Test
-		public void test_sequentialSearchMAD_edges()
+	public void test_sequentialSearchMAD_edges()
+	{
+		/*
+		 * How do I test sequentialSearchMSD()? - create a dummy image 2d
+		 * arrays, target[4][4] and ref[4][4] macroBlkSize = 2, - assign simple
+		 * pixel values - get the best matcing ref block and printout min, x, y
+		 */
+		Prep pr = new Prep();
+		int tx0 = 2, ty0 = 2, p = 1;
+		int macroBlkSize = 2;
+
+		int[][] target =
 		{
-			/*
-			 * How do I test sequentialSearchMSD()? - create a dummy image 2d
-			 * arrays, target[4][4] and ref[4][4] macroBlkSize = 2, - assign simple
-			 * pixel values - get the best matcing ref block and printout min, x, y
-			 */
-			Prep pr = new Prep();
-			int tx0 = 2, ty0 = 2, p = 1;
-			int macroBlkSize = 2;
+		{ 1, 2, 3, 4 },
+		{ 5, 6, 7, 8 },
+		{ 9, 10, 11, 12 },
+		{ 13, 14, 15, 16 } };
 
-			int[][] target =
-			{
-			{ 1, 2, 3, 4 },
-			{ 5, 6, 7, 8 },
-			{ 9, 10, 11, 12 },
-			{ 13, 14, 15, 16 } };
+		int[][] ref =
+		{
+		{ 6, 7, 2, 3 },
+		{ 10, 11, 6, 10 },
+		{ 1, 2, 3, 1 },
+		{ 1, 6, 7, 3 } };
 
-			int[][] ref =
-			{
-			{ 6, 7, 2, 3 },
-			{ 10, 11, 6, 10 },
-			{ 1, 2, 3, 1 },
-			{ 1, 6, 7, 3 } };
+		System.out.println( pr.sequentialSearchMAD( target, ref, tx0, ty0, p,
+				macroBlkSize ).toString() );
 
-			System.out.println( pr.sequentialSearchMAD( target, ref, tx0, ty0, p,
-					macroBlkSize ).toString() );
+	}
 
-		}
 	// @Test
 	public void test_display_macroblock() throws InterruptedException
 	{
@@ -276,4 +313,17 @@ public class hw4_test {
 		System.out.println( Float.MIN_VALUE );
 	}
 
+	public int[][] repeateArrayContents( int[][] target, int k )
+	{
+		Prep pp = new Prep();
+		int[][] repeats = new int[target.length * k][target[0].length * k];
+
+		for ( int i = 0; i < repeats.length; i++ ) {
+			for ( int j = 0; j < repeats[0].length; j++ ) {
+				repeats[i][j] = target[i % target.length][j % target[0].length];
+			}
+		}
+		pp.print2DArray( repeats );
+		return repeats;
+	}
 }
