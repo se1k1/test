@@ -39,7 +39,6 @@ public class Prep {
 			ImageJr residualImg, int[][][] motionCompensation, int macroBlkSize )
 			throws InterruptedException
 	{
-		float avgPixValue = 0;
 		ImageJr padTarget = targetImg.padImage();
 		ImageJr padRef = referenceImg.padImage();
 		ImageJr errorImg = new ImageJr( padTarget.getW(), padTarget.getH() );
@@ -52,12 +51,10 @@ public class Prep {
 		for ( int y = 0; y < targetFrm.length; y++ ) {
 			for ( int x = 0; x < targetFrm[y].length; x++ ) {
 
-				avgPixValue += targetFrm[y][x];
-
 				if ( x % macroBlkSize == 0 && y % macroBlkSize == 0 ) {
 
 					// find predicted block
-					bestMatch = sequentialSearchMAD( targetFrm, referenceFrm,
+					bestMatch = sequentialSearchMSD( targetFrm, referenceFrm,
 							x, y, p, macroBlkSize );
 
 					// store motion vector x
@@ -78,14 +75,14 @@ public class Prep {
 				// DEBUG
 				System.out.println( "MC(): x,y=" + x + "," + y );
 				System.out.println( "Best Match: " + bestMatch );
-								
+
 				errorImg.setPixel( x, y, motionCompensation[y][x][0] );
 			}
 		}
 
-	
-		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(), targetImg.getH() );
-	//	avgPixValue = getAvgPixValue( errorDepadded );
+		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
+				targetImg.getH() );
+		// avgPixValue = getAvgPixValue( errorDepadded );
 		ImageJr mappedError = mapResidual( errorDepadded );
 		/*
 		 * - use appropriate search criteria to get the best matching macroblock
@@ -112,17 +109,99 @@ public class Prep {
 		 * -1, 0] [ 1, 1] [ 10, 0] [ -4, 1]
 		 */
 
-		//mappedError.display( "error image" );
-		//Thread.sleep( 5000 );
+		// mappedError.display( "error image" );
+		// Thread.sleep( 5000 );
 	}// note that macroblock sizse would affect the compression ratio
 
-	public void displayImgJrPixelValues(ImageJr img){
+	public void MC_MAD( ImageJr targetImg, String imgnamgeT,
+			ImageJr referenceImg, String imgnamgeRef, int p,
+			int matchingCriteria, ImageJr residualImg,
+			int[][][] motionCompensation, int macroBlkSize )
+			throws InterruptedException
+	{
+		ImageJr padTarget = targetImg.padImage();
+		ImageJr padRef = referenceImg.padImage();
+		ImageJr errorImg = new ImageJr( padTarget.getW(), padTarget.getH() );
+		int[][] targetFrm = padTarget.imageJrTo2DArray();
+		int[][] referenceFrm = padRef.imageJrTo2DArray();
+		/* [0] = error value, [1] = motion vector x, [2] = motion vector y */
+		motionCompensation = new int[padTarget.getH()][padTarget.getW()][3];
+		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
+
+		for ( int y = 0; y < targetFrm.length; y++ ) {
+			for ( int x = 0; x < targetFrm[y].length; x++ ) {
+
+				if ( x % macroBlkSize == 0 && y % macroBlkSize == 0 ) {
+
+					// find predicted block
+					bestMatch = sequentialSearchMAD( targetFrm, referenceFrm,
+							x, y, p, macroBlkSize );
+
+					// store motion vector x
+					motionCompensation[y][x][1] = x - bestMatch.getxTopLeft();
+
+					// store motion vector y
+					motionCompensation[y][x][2] = y - bestMatch.getyTopLeft();
+				}
+
+				// store error_pixel_value
+				if ( ( bestMatch.getxTopLeft() + x % macroBlkSize ) < referenceFrm[0].length
+						&& ( bestMatch.getxTopLeft() + x % macroBlkSize ) < referenceFrm.length ) {
+					motionCompensation[y][x][0] = targetFrm[y][x]
+							- referenceFrm[bestMatch.getxTopLeft() + y
+									% macroBlkSize][bestMatch.getxTopLeft() + x
+									% macroBlkSize];
+				}
+				// DEBUG
+				System.out.println( "MC(): x,y=" + x + "," + y );
+				System.out.println( "Best Match: " + bestMatch );
+
+				errorImg.setPixel( x, y, motionCompensation[y][x][0] );
+			}
+		}
+
+		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
+				targetImg.getH() );
+		// avgPixValue = getAvgPixValue( errorDepadded );
+		ImageJr mappedError = mapResidual( errorDepadded );
+		/*
+		 * - use appropriate search criteria to get the best matching macroblock
+		 * from the reference frame -
+		 */
+
+		System.out.println( "# Name: Kae Sawada" + "\n# Target image name: "
+				+ imgnamgeT + "\n# Reference image name: " + imgnamgeRef
+				+ "\n# Number of target macro blocks: " + targetFrm[0].length
+				/ macroBlkSize + " x " + targetFrm.length / macroBlkSize
+				+ " (image size is " + targetImg.getW() + " x "
+				+ targetImg.getH() + ")" );
+
+		for ( int i = 0; i < motionCompensation.length; i += macroBlkSize ) {
+			for ( int j = 0; j < motionCompensation[0].length; j += macroBlkSize ) {
+				System.out.print( "[ " + motionCompensation[i][j][1] + ", "
+						+ motionCompensation[i][j][2] + " ] " );
+			}
+			System.out.println();
+		}
+
+		/*
+		 * [ 0, 0] [ 1, 1] [ 10, 10] [ 0, 0] [ 0, 1] [ 1, 1] [ 0, 0] [ 0, -1] [
+		 * -1, 0] [ 1, 1] [ 10, 0] [ -4, 1]
+		 */
+
+		// mappedError.display( "error image" );
+		// Thread.sleep( 5000 );
+	}// note that macroblock sizse would affect the compression ratio
+
+	public void displayImgJrPixelValues( ImageJr img )
+	{
 		for ( int i = 0; i < img.getH(); i++ ) {
 			for ( int j = 0; j < img.getW(); j++ ) {
-				img.displayPixelValue( j, i );				
+				img.displayPixelValue( j, i );
 			}
-		}		
+		}
 	}
+
 	public int[] logarithmicSearch( int[][] prev, int[][] target )
 	{
 
@@ -157,6 +236,7 @@ public class Prep {
 		// }
 
 		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
+
 		for ( int i = 1; i <= p; i++ ) {
 
 			if ( tx0 - p > -1 && tx0 - p < reference.length && ty0 - p > -1
@@ -196,10 +276,10 @@ public class Prep {
 			}
 			if ( tx0 - p > -1 && tx0 - p < reference.length && ty0 + p > -1
 					&& ty0 + p < reference.length ) {
-				
+
 				diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 + p,
-						meanAbsDiff( target, reference, tx0, ty0, tx0 - p,
-								ty0 + p, macroBlkSize ) ) );
+						meanAbsDiff( target, reference, tx0, ty0, tx0 - p, ty0
+								+ p, macroBlkSize ) ) );
 				System.out.println( "compare 7" );
 			}
 
@@ -234,50 +314,74 @@ public class Prep {
 		ReferenceFrameBlock sameLoc = new ReferenceFrameBlock( tx0, ty0,
 				meanSquareDiff( target, reference, tx0, ty0, tx0, ty0,
 						macroBlkSize ) );
-		if ( sameLoc.getDiffValue() < threshold ) {
-			return sameLoc;
-		}
+		// if ( sameLoc.getDiffValue() < threshold ) {
+		// System.out.println("same block error < threashold");
+		// return sameLoc;
+		// }
 
 		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
+
 		for ( int i = 1; i <= p; i++ ) {
 
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0 - p, ty0
-							- p, macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0, ty0 - p, meanSquareDiff(
-					target, reference, tx0, ty0, tx0, ty0 - p, macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0 + p, ty0 - p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0 + p, ty0
-							- p, macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0, meanSquareDiff(
-					target, reference, tx0, ty0, tx0 - p, ty0, macroBlkSize ) ) );
+			if ( tx0 - p > -1 && tx0 - p < reference.length && ty0 - p > -1
+					&& ty0 - p < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 - p,
+								ty0 - p, macroBlkSize ) ) );
+				//System.out.println( "compare 1" );
+			}
+			if ( ty0 - p > -1 && ty0 - p < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0, ty0 - p,
+						meanSquareDiff( target, reference, tx0, ty0, tx0, ty0
+								- p, macroBlkSize ) ) );
+				//System.out.println( "compare 2" );
+			}
+			if ( tx0 + p > -1 && tx0 + p < reference.length && ty0 - p > -1
+					&& ty0 - p < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0 + p, ty0 - p,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 + p,
+								ty0 - p, macroBlkSize ) ) );
+				//System.out.println( "compare 3" );
+			}
+			if ( tx0 - p > -1 && tx0 - p < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0 - p, ty0,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 - p,
+								ty0, macroBlkSize ) ) );
+				//System.out.println( "compare 4" );
+			}
 
 			diffs.add( sameLoc );
 
-			diffs.add( new ReferenceFrameBlock( tx0 + p, ty0, meanSquareDiff(
-					target, reference, tx0, ty0, tx0 + p, ty0, macroBlkSize ) ) );
+			if ( tx0 + p > -1 && tx0 + p < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0 + p, ty0,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 + p,
+								ty0, macroBlkSize ) ) );
+				//System.out.println( "compare 6" );
+			}
+			if ( tx0 - p > -1 && tx0 - p < reference.length && ty0 + p > -1
+					&& ty0 + p < reference.length ) {
 
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 + p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0 - p, ty0
-							+ p, macroBlkSize ) ) );
+				diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 + p,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 - p,
+								ty0 + p, macroBlkSize ) ) );
+				//System.out.println( "compare 7" );
+			}
 
-			diffs.add( new ReferenceFrameBlock( tx0, ty0 + p, meanSquareDiff(
-					target, reference, tx0, ty0, tx0, ty0 + p, macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0 + p, ty0 + p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0 + p, ty0
-							+ p, macroBlkSize ) ) );
-
+			if ( ty0 + p > -1 && ty0 + p < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0, ty0 + p,
+						meanSquareDiff( target, reference, tx0, ty0, tx0, ty0
+								+ p, macroBlkSize ) ) );
+				System.out.println( "compare 8" );
+			}
+			if ( tx0 + p > -1 && tx0 + p < reference.length && ty0 + p > -1
+					&& ty0 + p < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0 + p, ty0 + p,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 + p,
+								ty0 + p, macroBlkSize ) ) );
+				System.out.println( "compare 9" );
+			}
 		}
-
-		/*
-		 * [x-1][y-1] [x][y-1] [x+1][y-1] [x-1][y] [x][y] [x+1][y] [x-1][y+1]
-		 * [x][y+1] [x+1][y+1]
-		 */
-
+		System.out.println( diffs );
 		return findMinDiff( diffs );
 	}
 
@@ -454,17 +558,23 @@ public class Prep {
 		int counter = 0;
 		for ( int p = 0; p < macroBlkSizeIn; p++ ) {
 			for ( int q = 0; q < macroBlkSizeIn; q++ ) {
-				if ( ty0 + p < macroBlkSizeIn && tx0 + p < macroBlkSizeIn
-						&& ty0 + q < macroBlkSizeIn && tx0 + q < macroBlkSizeIn )
+				if ( ry0 + p < ref.length && rx0 + q < ref.length
+						&& ty0 + p < target.length && tx0 + q < target.length ) {
 					sum += Math.pow( target[ty0 + p][tx0 + q]
 							- ref[ry0 + p][rx0 + q], 2 );
-				counter++;
-				if(tx0==2 && ty0==2 && rx0==1 && ry0==3){
-					System.out.println("sum = " + sum);
-					System.out.println("counter = " + counter);
-					System.out.println("target[ty0 + p][tx0 + q]"+target[ty0 + p][tx0 + q]);
-					System.out.println("ref[ry0 + p][rx0 + q]"+ref[ry0 + p][rx0 + q]);
+					counter++;
+					System.out.print( "sum=" + sum + "\t" );
 				}
+				System.out.println();
+
+				// if ( tx0 == 2 && ty0 == 2 && rx0 == 1 && ry0 == 3 ) {
+				// System.out.println( "sum = " + sum );
+				// System.out.println( "counter = " + counter );
+				// System.out.println( "target[ty0 + p][tx0 + q]"
+				// + target[ty0 + p][tx0 + q] );
+				// System.out.println( "ref[ry0 + p][rx0 + q]"
+				// + ref[ry0 + p][rx0 + q] );
+				// }
 			}
 		}
 
@@ -523,10 +633,10 @@ public class Prep {
 				sum += residual[i][j];
 			}
 		}
-		
+
 		return sum / ( residual[0].length * residual.length );
 	}
-	
+
 	public float getAvgPixValue( int[][][] residual )
 	{
 		float sum = 0;
@@ -567,8 +677,7 @@ public class Prep {
 
 	public ImageJr mapResidual( ImageJr residual )
 	{
-		ImageJr mappedResidual = new ImageJr( residual.getW(),
-				residual.getH() );
+		ImageJr mappedResidual = new ImageJr( residual.getW(), residual.getH() );
 		float avg = getAvgPixValue( residual );
 		int value = 0;
 		for ( int i = 0; i < residual.getH(); i++ ) {
