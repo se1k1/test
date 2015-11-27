@@ -23,16 +23,16 @@ public class Image {
 		height = h;
 
 		img = new BufferedImage( width, height, BufferedImage.TYPE_INT_RGB );
-		System.out.println( "Created an empty image with size " + width + "x"
-				+ height );
+//		System.out.println( "Created an empty image with size " + width + "x"
+//				+ height );
 	}
 
 	public Image( String fileName )
 	// Create an image and read the data from the file
 	{
 		readPPM( fileName );
-		System.out.println( "Created an image from " + fileName + " with size "
-				+ width + "x" + height );
+//		System.out.println( "Created an image from " + fileName + " with size "
+//				+ width + "x" + height );
 	}
 
 	public int getW()

@@ -3,7 +3,61 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class testStorage {
+	@Test
+	public void test_mc_macroblkSize_equals_1()
+			throws InterruptedException
+	{
+		Prep pp = new Prep();
 
+
+		int[][] T =
+		 {
+		 { 1, 2, 3, 4 },
+		 { 5, 6, 7, 8 },
+		 { 9, 10, 11, 12 },
+		 { 13, 14, 15, 16 } };
+//		{
+//		{ 1, 20 },
+//		{ 5, 6 } };
+
+		int[][] R =
+		 {
+		 { 1, 2, 3, 4 },
+		 { 5, 6, 7, 8 },
+		 { 9, 10, 1, 12 },
+		 { 13, 14, 1, 16 } };
+//		{
+//		{ 1, 5 },
+//		{ 5, 20 } };
+		int p = 1;
+		ImageJr residual = new ImageJr();
+		ImageJr targetImg = (ImageJr) residual.array2DtoImageJr( T );
+		ImageJr refImg = (ImageJr) residual.array2DtoImageJr( R );
+		System.out.println( "T:" );
+		pp.print2DArray( T );
+		System.out.println( "R:" );
+		pp.print2DArray( R );
+		int[][][] motionCompensation = new int[T.length][T[0].length][3];
+		int macroBlkSize = 1;
+
+		pp.MC( targetImg, "target", refImg, "reference", p, 0, residual,
+				motionCompensation, macroBlkSize );
+		System.out.println( T.length );
+
+		pp.print3DArray( motionCompensation );
+	}
+	@Test
+	public void test_padSize(){
+		int[] paddedSize = new int[2];
+		ImageJr img = new ImageJr(4,15);
+		int macroBlkSize = 3;
+		img.paddedSize( macroBlkSize, paddedSize );
+		for ( int i = 0; i < paddedSize.length; i++ ) {
+			System.err.println(paddedSize[i]);
+		}
+		ImageJr padded = img.padImage( macroBlkSize );
+		padded.displayImageDimension();
+	}
 	// @Test
 	public void test_array_repeats()
 	{

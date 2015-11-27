@@ -7,7 +7,50 @@ import org.junit.Test;
 
 public class hw4_test {
 
-	//@Test
+	// @Test
+	public void test_mc_macroblkSize_equals_imageSize()
+			throws InterruptedException
+	{
+		Prep pp = new Prep();
+
+		int[][] T =
+		{
+		{ 1, 2, 3, 4 },
+		{ 5, 6, 7, 8 },
+		{ 9, 10, 11, 12 },
+		{ 13, 14, 15, 16 } };
+		// {
+		// { 1, 20 },
+		// { 5, 6 } };
+
+		int[][] R =
+		{
+		{ 1, 2, 3, 4 },
+		{ 5, 6, 7, 8 },
+		{ 9, 10, 1, 12 },
+		{ 13, 14, 1, 16 } };
+		// {
+		// { 1, 5 },
+		// { 5, 20 } };
+		int p = 2;
+		ImageJr residual = new ImageJr();
+		ImageJr targetImg = (ImageJr) residual.array2DtoImageJr( T );
+		ImageJr refImg = (ImageJr) residual.array2DtoImageJr( R );
+		System.out.println( "T:" );
+		pp.print2DArray( T );
+		System.out.println( "R:" );
+		pp.print2DArray( R );
+		int[][][] motionCompensation = new int[T.length][T[0].length][3];
+		int macroBlkSize = 1;
+
+		pp.MC( targetImg, "target", refImg, "reference", p, 0, residual,
+				motionCompensation, macroBlkSize );
+		System.out.println( T.length );
+
+		pp.print3DArray( motionCompensation );
+	}
+
+	// @Test
 	public void test_mc_with_synthetic_values() throws InterruptedException
 	{
 
@@ -25,8 +68,6 @@ public class hw4_test {
 		{ 1, 2, 3, 1 },
 		{ 1, 6, 7, 3 } };
 
-		int x = 70, y = 70, k = 2;
-
 		// int[][] T = new int[target.length][target[0].length], R = new
 		// int[ref.length][ref[0].length];
 		Prep pp = new Prep();
@@ -40,21 +81,21 @@ public class hw4_test {
 		pp.print2DArray( T );
 		System.out.println( "R:" );
 		pp.print2DArray( R );
-		int[][][] motionCompensation = new int[1][1][1];
-		int macroBlkSize = 2;
+		int[] paddedSize = new int[2];
+		int macroBlkSize = 16;
+		targetImg.paddedSize( macroBlkSize, paddedSize );
+		int[][][] motionCompensation = new int[paddedSize[0]][paddedSize[1]][3];
+
 		// ij.display_ks( "walk 57" );
 		// Thread.sleep( 3000 );
-		/*
-		 * MC( ImageJr targetImg, String imgnamgeT, ImageJr referenceImg, String
-		 * imgnamgeRef, int p, int matchingCriteria, ImageJr residualImg,
-		 * int[][][] motionCompensation, int macroBlkSize )
-		 */
+
 		pp.MC( targetImg, "target", refImg, "reference", 2, 0, residual,
 				motionCompensation, macroBlkSize );
+		System.out.println( T.length );
 
 	}
 
-	 @Test
+	@Test
 	public void test_mc() throws InterruptedException
 	{
 		int x = 70, y = 70;
@@ -67,11 +108,13 @@ public class hw4_test {
 		ImageJr t22 = new ImageJr( targetName );
 		ImageJr r20 = new ImageJr( refName );
 		ImageJr residual = new ImageJr();
-		int[][][] motionCompensation = new int[1][1][1];
+		int[] paddedSize = new int[2];
 		int macroBlkSize = 16;
-		// ij.display_ks( "walk 57" );
-		// Thread.sleep( 3000 );
-		
+		t22.paddedSize( macroBlkSize, paddedSize );
+		int[][][] motionCompensation = new int[paddedSize[1]][paddedSize[0]][3];
+//		 ij.display_ks( "walk 57" );
+//		 Thread.sleep( 3000 );
+
 		pp.MC( t22, targetName, r20, refName, 12, 0, residual,
 				motionCompensation, macroBlkSize );
 
@@ -203,7 +246,7 @@ public class hw4_test {
 		 */
 		Prep pr = new Prep();
 		int tx0 = 1, ty0 = 1, p = 1;
-		int macroBlkSize = 2;
+		int macroBlkSize = 1;
 
 		int[][] target =
 		{
