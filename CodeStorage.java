@@ -1,3 +1,20 @@
+
+/*
+ * 
+ * 	public ImageJr mapResidual( ImageJr residual )
+	{
+		ImageJr mappedResidual = new ImageJr( residual.getW(), residual.getH() );
+		float avg = getAvgPixValue( residual );
+		int value = 0;
+		for ( int i = 0; i < residual.getH(); i++ ) {
+			for ( int j = 0; j < residual.getW(); j++ ) {
+				value = residual.getR( j, i ) > avg ? 255 : 0;
+				mappedResidual.setPixel( j, i, value );
+			}
+		}
+		return mappedResidual;
+	}
+ * */
 //
 //public class CodeStorage {
 //

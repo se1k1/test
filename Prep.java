@@ -1,3 +1,9 @@
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -192,7 +198,8 @@ public class Prep {
 
 			}// loop col ends
 		}// loop row ends
-		System.out.println( getAvgPixValue( errorImg ) );
+		System.out.println( "avg: " + getAvgPixValue( errorImg ) );
+		System.out.println( "mean: " + getMeanPixValue( errorImg ) );
 
 		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
 				targetImg.getH() );
@@ -214,9 +221,9 @@ public class Prep {
 		// System.out.println( "motion compensation[][]:" );
 		// print3DArray( motionCompensation );
 
-		// mappedError.display( "error image" );
-		// mappedError.write2PPM( "out.ppm" );
-		// Thread.sleep( 10000 );
+		mappedError.display( "error image" );
+		mappedError.write2PPM( "out.ppm" );
+		Thread.sleep( 10000 );
 
 		// DEBUG
 		HelperMethod h = new HelperMethod();
@@ -344,14 +351,14 @@ public class Prep {
 		 * the same position in the past frame is below some threshold then no
 		 * motion
 		 */
-		float threshold = (float) 0.001;
+		float threshold = (float) 3;
 		ReferenceFrameBlock sameLoc = new ReferenceFrameBlock( tx0, ty0,
 				meanSquareDiff( target, reference, tx0, ty0, tx0, ty0,
 						macroBlkSize ) );
-		// if ( sameLoc.getDiffValue() < threshold ) {
-		// System.out.println("same block error < threashold");
-		// return sameLoc;
-		// }
+		if ( sameLoc.getDiffValue() < threshold ) {
+			System.out.println( "same block error < threashold" );
+			return sameLoc;
+		}
 
 		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
 
@@ -714,11 +721,43 @@ public class Prep {
 			}
 		}
 		Collections.sort( list );
-		//DEBUG
+		// DEBUG
 		for ( Integer integer : list ) {
-			System.out.print(integer+" ");
-		}System.out.println();
+			System.out.print( integer + " " );
+		}
+		System.out.println();
 		return list.get( list.size() / 2 );
+	}
+
+	public int getSpecifiedPercentileValue( ImageJr residual, float percentile )
+	{
+		List<Integer> list = new LinkedList<Integer>();
+		int sum = 0;
+
+		for ( int y = 0; y < residual.getH(); y++ ) {
+			for ( int x = 0; x < residual.getW(); x++ ) {
+				list.add( residual.getR( x, y ) );
+			}
+		}
+		Collections.sort( list );
+		int startIdx = (int) Math.round( list.size() * ( percentile / 100. ) );
+		for ( int i = startIdx; i < list.size(); i++ ) {
+			sum += list.get( i );
+		}
+
+		// DEBUG
+		// for ( int i = startIdx; i < list.size(); i++ ) {
+		// if(i%10==0){System.out.println();}
+		// System.out.print(list.get( i ) + " " );
+		// }
+		System.out.println();
+		System.out.println( list.size() );
+		System.out.println( list.size() * ( percentile / 100. ) );
+		System.out.println( "sum: " + sum );
+		System.out.println( "startIdx: " + startIdx );
+
+		return sum / ( list.size() - startIdx );
+
 	}
 
 	public float getAvgPixValue( ImageJr residual )
@@ -733,6 +772,7 @@ public class Prep {
 		return sum / ( residual.getH() * residual.getW() );
 	}
 
+	/* stil uses avg value */
 	public ImageJr mapResidual( int[][][] residual )
 	{
 		ImageJr mappedResidual = new ImageJr( residual[0].length,
@@ -748,17 +788,37 @@ public class Prep {
 		return mappedResidual;
 	}
 
+	/* uses mean value */
 	public ImageJr mapResidual( ImageJr residual )
 	{
 		ImageJr mappedResidual = new ImageJr( residual.getW(), residual.getH() );
-		float avg = getAvgPixValue( residual );
+		// float mean = getMeanPixValue( residual );
+		float threshold = getSpecifiedPercentileValue( residual, (float) 90/* 98.5 */);
+		System.out.println( threshold );
+
 		int value = 0;
 		for ( int i = 0; i < residual.getH(); i++ ) {
 			for ( int j = 0; j < residual.getW(); j++ ) {
-				value = residual.getR( j, i ) > avg ? 255 : 0;
+				value = residual.getR( j, i ) > threshold ? 255 : 0;
 				mappedResidual.setPixel( j, i, value );
 			}
 		}
 		return mappedResidual;
 	}
+
+	public void writeToAFile()
+	{
+		Writer writer;
+		try {
+			writer = new BufferedWriter( new OutputStreamWriter(
+					new FileOutputStream( "task1_out.txt" ), "utf-8" ) );
+
+			writer.write( "something" );
+		} catch ( Exception e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
 }
