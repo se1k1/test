@@ -39,103 +39,8 @@ public class Prep {
 		coordinate[1] = y1 - y0;
 	}
 
-	/**
-	 * e(x,y) = cn+1(x,y) - cn(x-dx ,y-dy ) k: Search Size i1: reference frame
-	 * i2: target frame
-	 * 
-	 * @throws InterruptedException
-	 * */
-	public void MC_per_macroBlk_debug( ImageJr targetImg, String imgnamgeT,
-			ImageJr referenceImg, String imgnamgeRef, int p,
-			int matchingCriteria, ImageJr residualImg,
-			int[][][] motionCompensation, int macroBlkSize )
-			throws InterruptedException
-	{
-		ImageJr padTarget = targetImg.padImage( macroBlkSize );
-		ImageJr padRef = referenceImg.padImage( macroBlkSize );
-		ImageJr errorImg = new ImageJr( padTarget.getW(), padTarget.getH() );
-		int[][] targetFrm = padTarget.imageJrTo2DArray();
-		int[][] referenceFrm = padRef.imageJrTo2DArray();
-		/* [0] = error value, [1] = motion vector x, [2] = motion vector y */
-		motionCompensation = new int[padTarget.getH()][padTarget.getW()][3];
-		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
-
-		for ( int y = 0; y < targetFrm.length; y++ ) {
-			for ( int x = 0; x < targetFrm[y].length; x++ ) {
-
-				if ( x % macroBlkSize == 0 && y % macroBlkSize == 0 ) {
-
-					// find predicted block
-					bestMatch = sequentialSearchMSD( targetFrm, referenceFrm,
-							x, y, p, macroBlkSize );
-
-					// store motion vector x
-					motionCompensation[y][x][1] = x - bestMatch.getxTopLeft();
-
-					// store motion vector y
-					motionCompensation[y][x][2] = y - bestMatch.getyTopLeft();
-				}
-
-				// store error_pixel_value
-				if ( ( bestMatch.getxTopLeft() + x % macroBlkSize ) < referenceFrm[0].length
-						&& ( bestMatch.getxTopLeft() + x % macroBlkSize ) < referenceFrm.length ) {
-					motionCompensation[y][x][0] = Math.abs( targetFrm[y][x]
-							- referenceFrm[bestMatch.getxTopLeft() + y
-									% macroBlkSize][bestMatch.getxTopLeft() + x
-									% macroBlkSize] );
-				}
-				// DEBUG
-				// System.out.println( "MC(): x,y=" + x + "," + y );
-				// System.out.println( "Best Match: " + bestMatch );
-
-				errorImg.setPixel( x, y, motionCompensation[y][x][0] );
-			}
-		}
-
-		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
-				targetImg.getH() );
-		// avgPixValue = getAvgPixValue( errorDepadded );
-		ImageJr mappedError = mapResidual( errorDepadded );
-		/*
-		 * - use appropriate search criteria to get the best matching macroblock
-		 * from the reference frame -
-		 */
-
-		System.out.println( "# Name: Kae Sawada" + "\n# Target image name: "
-				+ imgnamgeT + "\n# Reference image name: " + imgnamgeRef
-				+ "\n# Number of target macro blocks: " + targetFrm[0].length
-				/ macroBlkSize + " x " + targetFrm.length / macroBlkSize
-				+ " (image size is " + targetImg.getW() + " x "
-				+ targetImg.getH() + ")" );
-
-		// DEBUG
-		for ( int i = 0; i < motionCompensation.length; i += macroBlkSize ) {
-			for ( int j = 0; j < motionCompensation[0].length; j += macroBlkSize ) {
-				System.out.print( "[ " + motionCompensation[i][j][1] + ", "
-						+ motionCompensation[i][j][2] + " ] " );
-			}
-			System.out.println();
-		}
-
-		/*
-		 * [ 0, 0] [ 1, 1] [ 10, 10] [ 0, 0] [ 0, 1] [ 1, 1] [ 0, 0] [ 0, -1] [
-		 * -1, 0] [ 1, 1] [ 10, 0] [ -4, 1]
-		 */
-		// DEBUG
-		for ( int i = 0; i < motionCompensation.length; i++ ) {
-			for ( int j = 0; j < motionCompensation[0].length; j++ ) {
-				System.out.print( motionCompensation[i][j][0] + " "
-						+ motionCompensation[i][j][1] + ", "
-						+ motionCompensation[i][j][2] + " | " );
-			}
-			System.out.println();
-		}
-		mappedError.display( "error image" );
-		Thread.sleep( 5000 );
-	}// note that macroblock sizse would affect the compression ratio
-
-	public void MC( ImageJr targetImg, String imgnamgeT, ImageJr referenceImg,
-			String imgnamgeRef, int p, int matchingCriteria,
+	public void MC( ImageJr targetImg, String imgNameT, ImageJr referenceImg,
+			String imgNameRef, int p, int matchingCriteria,
 			ImageJr residualImg, int[][][] motionCompensation, int macroBlkSize )
 			throws InterruptedException
 	{
@@ -148,8 +53,7 @@ public class Prep {
 		// motionCompensation = new int[padTarget.getH()][padTarget.getW()][3];
 		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
 		int debugX = 100, debugY = 90;
-		System.out.println( "targetFrm Demension: " + targetFrm[0].length
-				+ " x " + targetFrm.length );
+
 		for ( int y = 0; y < targetFrm.length; y += macroBlkSize ) {
 			for ( int x = 0; x < targetFrm[y].length; x += macroBlkSize ) {
 
@@ -164,10 +68,11 @@ public class Prep {
 				}
 
 				// store motion vector x
-				System.out.print( "dx = " + ( x - bestMatch.getxTopLeft() ) );
+				// System.out.print( "dx = " + ( x - bestMatch.getxTopLeft() )
+				// );
 				motionCompensation[y][x][1] = x - bestMatch.getxTopLeft();
-				System.out
-						.println( "\tdy = " + ( y - bestMatch.getyTopLeft() ) );
+				// System.out
+				// .println( "\tdy = " + ( y - bestMatch.getyTopLeft() ) );
 				motionCompensation[y][x][2] = y - bestMatch.getyTopLeft();
 
 				// store each error_pixel_value
@@ -187,10 +92,6 @@ public class Prep {
 
 							errorImg.setPixel( x + j, y + i,
 									motionCompensation[y + i][x + j][0] );
-							if ( ( x + j ) > 190 ) {
-								System.out.println( "current x+j, y+i = "
-										+ ( x + j ) + ", " + ( y + i ) );
-							}
 
 						}
 					}
@@ -198,8 +99,6 @@ public class Prep {
 
 			}// loop col ends
 		}// loop row ends
-		System.out.println( "avg: " + getAvgPixValue( errorImg ) );
-		System.out.println( "mean: " + getMeanPixValue( errorImg ) );
 
 		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
 				targetImg.getH() );
@@ -209,26 +108,23 @@ public class Prep {
 		 * from the reference frame -
 		 */
 
-		System.out.println( "# Name: Kae Sawada" + "\n# Target image name: "
-				+ imgnamgeT + "\n# Reference image name: " + imgnamgeRef
-				+ "\n# Number of target macro blocks: "
-				+ ( targetFrm[0].length / macroBlkSize ) + " x "
-				+ targetFrm.length / macroBlkSize + " (image size is "
-				+ targetImg.getW() + " x " + targetImg.getH() + ")"
-				+ "\n# Macroblock size = " + macroBlkSize + "\t" + "p=" + p );
+		// mappedError.display( "error image" );
+		// mappedError.write2PPM( "out.ppm" );
+		// Thread.sleep( 10000 );
 
 		// DEBUG
-		// System.out.println( "motion compensation[][]:" );
-		// print3DArray( motionCompensation );
+		System.out.println( "motion compensation[][]:" );
+		for ( int i = 0; i < motionCompensation.length; i += macroBlkSize ) {
+			for ( int j = 0; j < motionCompensation[0].length; j += macroBlkSize ) {
+				System.out.print( "[ " + motionCompensation[i][j][0] + ", "
+						+ motionCompensation[i][j][1] + ", "
+						+ motionCompensation[i][j][2] + " ] " );
+			}
+			System.out.println();
+		}
 
-		mappedError.display( "error image" );
-		mappedError.write2PPM( "out.ppm" );
-		Thread.sleep( 10000 );
-
-		// DEBUG
-		HelperMethod h = new HelperMethod();
-		// h.printImageJrPixelValues( mappedError );
-		// h.printImageJrPixelValues( errorDepadded );
+		 writeTask1ResultToFile( motionCompensation, imgNameT, imgNameRef,
+		 targetFrm, macroBlkSize, targetImg.getW(), targetImg.getH(), p );
 
 		// mappedError.display( "error" );
 		// Thread.sleep( 4000 );
@@ -676,9 +572,9 @@ public class Prep {
 			}
 		}
 		ImageJr large = (ImageJr) img.enlargeImg( enlargeFactor );
-		large.display( "macroblock (" + ref.getxTopLeft() + ", "
-				+ ref.getyTopLeft() + ")" );
-		Thread.sleep( 3000 );
+		// large.display( "macroblock (" + ref.getxTopLeft() + ", "
+		// + ref.getyTopLeft() + ")" );
+		// Thread.sleep( 3000 );
 	}
 
 	public int[][] computeError( ReferenceFrameBlock bestMatch, int[][] target )
@@ -806,14 +702,35 @@ public class Prep {
 		return mappedResidual;
 	}
 
-	public void writeToAFile()
+	public void writeTask1ResultToFile( int[][][] motionCompensation,
+			String imgNameT, String imgNameRef, int[][] targetFrm,
+			int macroBlkSize, int targetImgW, int targetImgH, int p )
 	{
 		Writer writer;
 		try {
 			writer = new BufferedWriter( new OutputStreamWriter(
-					new FileOutputStream( "task1_out.txt" ), "utf-8" ) );
+					new FileOutputStream( "task1_ksawada_mv.txt" ), "utf-8" ) );
 
 			writer.write( "something" );
+			writer.write( "# Name: Kae Sawada" + "\n# Target image name: "
+					+ imgNameT + "\n# Reference image name: " + imgNameRef
+					+ "\n# Number of target macro blocks: "
+					+ ( targetFrm[0].length / macroBlkSize ) + " x "
+					+ targetFrm.length / macroBlkSize + " (image size is "
+					+ targetImgW + " x " + targetImgH + ")"
+					+ "\n# Macroblock size = " + macroBlkSize + "\t" + "p=" + p );
+
+			writer.write( "\n" );
+
+			for ( int i = 0; i < motionCompensation.length; i += macroBlkSize ) {
+				for ( int j = 0; j < motionCompensation[0].length; j += macroBlkSize ) {
+					writer.write( "[ " + motionCompensation[i][j][1] + ", "
+							+ motionCompensation[i][j][2] + " ] " );
+				}
+				System.out.println();
+			}
+			writer.write( "\n" );
+
 		} catch ( Exception e ) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
