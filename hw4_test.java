@@ -1,5 +1,6 @@
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,12 +9,36 @@ import java.util.Random;
 import org.junit.Test;
 
 public class hw4_test {
-	
-
-
 
 	@Test
-	public void test_mc() throws InterruptedException
+	public void test_mc_with_logSearch() throws InterruptedException,
+			IOException
+	{
+		// int x = 70, y = 70;
+		Prep pp = new Prep();
+		String targetName = "Walk_060.ppm";
+		String refName = "Walk_057.ppm";
+		// String targetName = "Walk_022.ppm";
+		// String refName = "Walk_022.ppm";
+
+		ImageJr t22 = new ImageJr( targetName );
+		ImageJr r20 = new ImageJr( refName );
+		ImageJr residual = new ImageJr();
+		int[] paddedSize = new int[2];
+		int macroBlkSize = 16;
+		t22.paddedSize( macroBlkSize, paddedSize );
+		System.out.println( "width:" + paddedSize[0] + "\t" + paddedSize[1] );
+		int[][][] motionCompensation = new int[paddedSize[1]][paddedSize[0]][3];
+		// ij.display_ks( "walk 57" );
+		// Thread.sleep( 3000 );
+
+		pp.MC_w_logSearch( t22, targetName, r20, refName, 1, 0, residual,
+				motionCompensation, macroBlkSize );
+
+	}
+
+	// @Test
+	public void test_mc() throws InterruptedException, IOException
 	{
 		// int x = 70, y = 70;
 		Prep pp = new Prep();

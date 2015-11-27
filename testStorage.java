@@ -1,5 +1,6 @@
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -10,7 +11,7 @@ public class testStorage {
 
 	// @Test
 	public void test_mc_macroblkSize_equals_imageSize()
-			throws InterruptedException
+			throws InterruptedException, IOException
 	{
 		Prep pp = new Prep();
 
@@ -52,7 +53,7 @@ public class testStorage {
 	}
 
 	// @Test
-	public void test_mc_with_synthetic_values() throws InterruptedException
+	public void test_mc_with_synthetic_values() throws InterruptedException, IOException
 	{
 
 		int[][] target =
@@ -136,7 +137,7 @@ public class testStorage {
 	}
 
 	@Test
-	public void test_mc_macroblkSize_equals_1() throws InterruptedException
+	public void test_mc_macroblkSize_equals_1() throws InterruptedException, IOException
 	{
 		Prep pp = new Prep();
 
