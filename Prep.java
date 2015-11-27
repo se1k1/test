@@ -1,5 +1,10 @@
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class Prep {
 	// private int macroBlkSize = 16;
@@ -137,6 +142,8 @@ public class Prep {
 		// motionCompensation = new int[padTarget.getH()][padTarget.getW()][3];
 		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
 		int debugX = 100, debugY = 90;
+		System.out.println( "targetFrm Demension: " + targetFrm[0].length
+				+ " x " + targetFrm.length );
 		for ( int y = 0; y < targetFrm.length; y += macroBlkSize ) {
 			for ( int x = 0; x < targetFrm[y].length; x += macroBlkSize ) {
 
@@ -167,13 +174,17 @@ public class Prep {
 								&& ( y + i ) < referenceFrm.length ) {
 
 							motionCompensation[y + i][x + j][0] = Math
-									.abs( targetFrm[y][x]
+									.abs( targetFrm[y + i][x + j]
 											- referenceFrm[bestMatch
 													.getyTopLeft() + i][bestMatch
 													.getxTopLeft() + j] );
 
 							errorImg.setPixel( x + j, y + i,
 									motionCompensation[y + i][x + j][0] );
+							if ( ( x + j ) > 190 ) {
+								System.out.println( "current x+j, y+i = "
+										+ ( x + j ) + ", " + ( y + i ) );
+							}
 
 						}
 					}
@@ -181,9 +192,8 @@ public class Prep {
 
 			}// loop col ends
 		}// loop row ends
+		System.out.println( getAvgPixValue( errorImg ) );
 
-		errorImg.display( "error" );
-		Thread.sleep( 4000 );
 		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
 				targetImg.getH() );
 		ImageJr mappedError = mapResidual( errorDepadded );
@@ -201,18 +211,20 @@ public class Prep {
 				+ "\n# Macroblock size = " + macroBlkSize + "\t" + "p=" + p );
 
 		// DEBUG
-		System.out.println( "motion compensation[][]:" );
-		print3DArray( motionCompensation );
+		// System.out.println( "motion compensation[][]:" );
+		// print3DArray( motionCompensation );
 
 		// mappedError.display( "error image" );
 		// mappedError.write2PPM( "out.ppm" );
 		// Thread.sleep( 10000 );
 
 		// DEBUG
-		// HelperMethod h = new HelperMethod();
+		HelperMethod h = new HelperMethod();
 		// h.printImageJrPixelValues( mappedError );
 		// h.printImageJrPixelValues( errorDepadded );
 
+		// mappedError.display( "error" );
+		// Thread.sleep( 4000 );
 	}// note that macroblock sizse would affect the compression ratio
 
 	public void displayImgJrPixelValues( ImageJr img )
@@ -345,7 +357,7 @@ public class Prep {
 
 		for ( int i = 1; i <= p; i++ ) {
 
-			if ( tx0 - i > -1 && tx0 - i < reference.length && ty0 - i > -1
+			if ( tx0 - i > -1 && tx0 - i < reference[0].length && ty0 - i > -1
 					&& ty0 - i < reference.length ) {
 				diffs.add( new ReferenceFrameBlock( tx0 - i, ty0 - i,
 						meanSquareDiff( target, reference, tx0, ty0, tx0 - i,
@@ -358,7 +370,7 @@ public class Prep {
 								- i, macroBlkSize ) ) );
 				// System.out.println( "compare 2" );
 			}
-			if ( tx0 + i > -1 && tx0 + i < reference.length && ty0 - i > -1
+			if ( tx0 + i > -1 && tx0 + i < reference[0].length && ty0 - i > -1
 					&& ty0 - i < reference.length ) {
 				diffs.add( new ReferenceFrameBlock( tx0 + i, ty0 - i,
 						meanSquareDiff( target, reference, tx0, ty0, tx0 + i,
@@ -374,13 +386,13 @@ public class Prep {
 
 			diffs.add( sameLoc );
 
-			if ( tx0 + i > -1 && tx0 + i < reference.length ) {
+			if ( tx0 + i > -1 && tx0 + i < reference[0].length ) {
 				diffs.add( new ReferenceFrameBlock( tx0 + i, ty0,
 						meanSquareDiff( target, reference, tx0, ty0, tx0 + i,
 								ty0, macroBlkSize ) ) );
 				// System.out.println( "compare 6" );
 			}
-			if ( tx0 - i > -1 && tx0 - i < reference.length && ty0 + i > -1
+			if ( tx0 - i > -1 && tx0 - i < reference[0].length && ty0 + i > -1
 					&& ty0 + i < reference.length ) {
 
 				diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 + i,
@@ -395,7 +407,7 @@ public class Prep {
 								+ i, macroBlkSize ) ) );
 				// System.out.println( "compare 8" );
 			}
-			if ( tx0 + i > -1 && tx0 + i < reference.length && ty0 + i > -1
+			if ( tx0 + i > -1 && tx0 + i < reference[0].length && ty0 + i > -1
 					&& ty0 + i < reference.length ) {
 				diffs.add( new ReferenceFrameBlock( tx0 + i, ty0 + i,
 						meanSquareDiff( target, reference, tx0, ty0, tx0 + i,
@@ -603,8 +615,9 @@ public class Prep {
 		int counter = 0;
 		for ( int p = 0; p < macroBlkSizeIn; p++ ) {
 			for ( int q = 0; q < macroBlkSizeIn; q++ ) {
-				if ( ry0 + p < ref.length && rx0 + q < ref.length
-						&& ty0 + p < target.length && tx0 + q < target.length ) {
+				if ( ry0 + p < ref.length && rx0 + q < ref[0].length
+						&& ty0 + p < target.length
+						&& tx0 + q < target[0].length ) {
 					sum += Math.pow( target[ty0 + p][tx0 + q]
 							- ref[ry0 + p][rx0 + q], 2 );
 					counter++;
@@ -689,6 +702,23 @@ public class Prep {
 			}
 		}
 		return sum / ( residual[0].length * residual.length );
+	}
+
+	public int getMeanPixValue( ImageJr residual )
+	{
+		List<Integer> list = new LinkedList<Integer>();
+
+		for ( int y = 0; y < residual.getH(); y++ ) {
+			for ( int x = 0; x < residual.getW(); x++ ) {
+				list.add( residual.getR( x, y ) );
+			}
+		}
+		Collections.sort( list );
+		//DEBUG
+		for ( Integer integer : list ) {
+			System.out.print(integer+" ");
+		}System.out.println();
+		return list.get( list.size() / 2 );
 	}
 
 	public float getAvgPixValue( ImageJr residual )

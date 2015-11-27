@@ -1,109 +1,47 @@
 import static org.junit.Assert.*;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import org.junit.Test;
 
 public class hw4_test {
-
-	// @Test
-	public void test_mc_macroblkSize_equals_imageSize()
-			throws InterruptedException
+	public int randomNumGen( int min, int max )
 	{
-		Prep pp = new Prep();
-
-		int[][] T =
-		{
-		{ 1, 2, 3, 4 },
-		{ 5, 6, 7, 8 },
-		{ 9, 10, 11, 12 },
-		{ 13, 14, 15, 16 } };
-		// {
-		// { 1, 20 },
-		// { 5, 6 } };
-
-		int[][] R =
-		{
-		{ 1, 2, 3, 4 },
-		{ 5, 6, 7, 8 },
-		{ 9, 10, 1, 12 },
-		{ 13, 14, 1, 16 } };
-		// {
-		// { 1, 5 },
-		// { 5, 20 } };
-		int p = 2;
-		ImageJr residual = new ImageJr();
-		ImageJr targetImg = (ImageJr) residual.array2DtoImageJr( T );
-		ImageJr refImg = (ImageJr) residual.array2DtoImageJr( R );
-		System.out.println( "T:" );
-		pp.print2DArray( T );
-		System.out.println( "R:" );
-		pp.print2DArray( R );
-		int[][][] motionCompensation = new int[T.length][T[0].length][3];
-		int macroBlkSize = 1;
-
-		pp.MC( targetImg, "target", refImg, "reference", p, 0, residual,
-				motionCompensation, macroBlkSize );
-		System.out.println( T.length );
-
-		pp.print3DArray( motionCompensation );
-	}
-
-	// @Test
-	public void test_mc_with_synthetic_values() throws InterruptedException
-	{
-
-		int[][] target =
-		{
-		{ 1, 2, 3, 4 },
-		{ 5, 6, 7, 8 },
-		{ 9, 10, 11, 12 },
-		{ 13, 14, 15, 16 } };
-
-		int[][] ref =
-		{
-		{ 6, 7, 2, 3 },
-		{ 10, 11, 6, 10 },
-		{ 1, 2, 3, 1 },
-		{ 1, 6, 7, 3 } };
-
-		// int[][] T = new int[target.length][target[0].length], R = new
-		// int[ref.length][ref[0].length];
-		Prep pp = new Prep();
-		int[][] T = repeateArrayContents( target, 2 );
-		int[][] R = repeateArrayContents( ref, 2 );
-
-		ImageJr residual = new ImageJr();
-		ImageJr targetImg = (ImageJr) residual.array2DtoImageJr( T );
-		ImageJr refImg = (ImageJr) residual.array2DtoImageJr( R );
-		System.out.println( "T:" );
-		pp.print2DArray( T );
-		System.out.println( "R:" );
-		pp.print2DArray( R );
-		int[] paddedSize = new int[2];
-		int macroBlkSize = 16;
-		targetImg.paddedSize( macroBlkSize, paddedSize );
-		int[][][] motionCompensation = new int[paddedSize[0]][paddedSize[1]][3];
-
-		// ij.display_ks( "walk 57" );
-		// Thread.sleep( 3000 );
-
-		pp.MC( targetImg, "target", refImg, "reference", 2, 0, residual,
-				motionCompensation, macroBlkSize );
-		System.out.println( T.length );
-
+		Random rd = new Random();
+		return rd.nextInt( max ) + min;
 	}
 
 	@Test
+	public void test_getMean()
+	{
+
+		List<Integer> list = new LinkedList<Integer>();
+		ImageJr img = new ImageJr(4,4);
+		int min=0, max=50;
+
+		for ( int y = 0; y < 4; y++ ) {
+			for ( int i = 0; i < 4; i++ ) {
+				img.setPixel( i, y, randomNumGen( min, max ) );
+			}
+		
+		}
+		Prep pp = new Prep();
+		System.out.println(pp.getMeanPixValue( img) );
+
+	}
+
+	// @Test
 	public void test_mc() throws InterruptedException
 	{
-		int x = 70, y = 70;
+		// int x = 70, y = 70;
 		Prep pp = new Prep();
-		// String targetName = "Walk_057.ppm";
-		// String refName = "Walk_060.ppm";
-		String targetName = "Walk_022.ppm";
-		String refName = "Walk_020.ppm";
+		String targetName = "Walk_060.ppm";
+		String refName = "Walk_057.ppm";
+		// String targetName = "Walk_022.ppm";
+		// String refName = "Walk_022.ppm";
 
 		ImageJr t22 = new ImageJr( targetName );
 		ImageJr r20 = new ImageJr( refName );
@@ -111,9 +49,10 @@ public class hw4_test {
 		int[] paddedSize = new int[2];
 		int macroBlkSize = 16;
 		t22.paddedSize( macroBlkSize, paddedSize );
+		System.out.println( "width:" + paddedSize[0] + "\t" + paddedSize[1] );
 		int[][][] motionCompensation = new int[paddedSize[1]][paddedSize[0]][3];
-//		 ij.display_ks( "walk 57" );
-//		 Thread.sleep( 3000 );
+		// ij.display_ks( "walk 57" );
+		// Thread.sleep( 3000 );
 
 		pp.MC( t22, targetName, r20, refName, 12, 0, residual,
 				motionCompensation, macroBlkSize );
@@ -369,4 +308,93 @@ public class hw4_test {
 		pp.print2DArray( repeats );
 		return repeats;
 	}
+
+	// @Test
+	public void test_mc_macroblkSize_equals_imageSize()
+			throws InterruptedException
+	{
+		Prep pp = new Prep();
+
+		int[][] T =
+		{
+		{ 1, 2, 3, 4 },
+		{ 5, 6, 7, 8 },
+		{ 9, 10, 11, 12 },
+		{ 13, 14, 15, 16 } };
+		// {
+		// { 1, 20 },
+		// { 5, 6 } };
+
+		int[][] R =
+		{
+		{ 1, 2, 3, 4 },
+		{ 5, 6, 7, 8 },
+		{ 9, 10, 1, 12 },
+		{ 13, 14, 1, 16 } };
+		// {
+		// { 1, 5 },
+		// { 5, 20 } };
+		int p = 2;
+		ImageJr residual = new ImageJr();
+		ImageJr targetImg = (ImageJr) residual.array2DtoImageJr( T );
+		ImageJr refImg = (ImageJr) residual.array2DtoImageJr( R );
+		System.out.println( "T:" );
+		pp.print2DArray( T );
+		System.out.println( "R:" );
+		pp.print2DArray( R );
+		int[][][] motionCompensation = new int[T.length][T[0].length][3];
+		int macroBlkSize = 1;
+
+		pp.MC( targetImg, "target", refImg, "reference", p, 0, residual,
+				motionCompensation, macroBlkSize );
+		System.out.println( T.length );
+
+		pp.print3DArray( motionCompensation );
+	}
+
+	// @Test
+	public void test_mc_with_synthetic_values() throws InterruptedException
+	{
+
+		int[][] target =
+		{
+		{ 1, 2, 3, 4 },
+		{ 5, 6, 7, 8 },
+		{ 9, 10, 11, 12 },
+		{ 13, 14, 15, 16 } };
+
+		int[][] ref =
+		{
+		{ 6, 7, 2, 3 },
+		{ 10, 11, 6, 10 },
+		{ 1, 2, 3, 1 },
+		{ 1, 6, 7, 3 } };
+
+		// int[][] T = new int[target.length][target[0].length], R = new
+		// int[ref.length][ref[0].length];
+		Prep pp = new Prep();
+		int[][] T = repeateArrayContents( target, 2 );
+		int[][] R = repeateArrayContents( ref, 2 );
+
+		ImageJr residual = new ImageJr();
+		ImageJr targetImg = (ImageJr) residual.array2DtoImageJr( T );
+		ImageJr refImg = (ImageJr) residual.array2DtoImageJr( R );
+		System.out.println( "T:" );
+		pp.print2DArray( T );
+		System.out.println( "R:" );
+		pp.print2DArray( R );
+		int[] paddedSize = new int[2];
+		int macroBlkSize = 16;
+		targetImg.paddedSize( macroBlkSize, paddedSize );
+		int[][][] motionCompensation = new int[paddedSize[0]][paddedSize[1]][3];
+
+		// ij.display_ks( "walk 57" );
+		// Thread.sleep( 3000 );
+
+		pp.MC( targetImg, "target", refImg, "reference", 2, 0, residual,
+				motionCompensation, macroBlkSize );
+		System.out.println( T.length );
+
+	}
+
 }
