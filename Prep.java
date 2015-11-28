@@ -123,13 +123,100 @@ public class Prep {
 			}
 			System.out.println();
 		}
+	}
 
-		writeTask1ResultToFile( motionCompensation, imgNameT, imgNameRef,
-				targetFrm, macroBlkSize, targetImg.getW(), targetImg.getH(), p );
+	/* trash */
+	public int getLower10Percent( int min, int max )
+	{
+		return (int) Math.round( max - min * .1 );
+	}
+
+	/* trash */
+	public int getUpper10Percent( int min, int max )
+	{
+		return (int) Math.round( max - min * .9 );
+	}
+
+	/**
+	 * this MC() will calculate the threshold values to aid moving object
+	 * removal
+	 */
+	public void MC( ImageJr targetImg, String imgNameT, ImageJr referenceImg,
+			String imgNameRef, int p, int matchingCriteria,
+			ImageJr residualImg, int[][][] motionCompensation,
+			int macroBlkSize, int[] thresholds )
+	{
+		ImageJr padTarget = targetImg.padImage( macroBlkSize );
+		ImageJr padRef = referenceImg.padImage( macroBlkSize );
+		ImageJr errorImg = new ImageJr( padTarget.getW(), padTarget.getH() );
+		int[][] targetFrm = padTarget.imageJrTo2DArray();
+		int[][] referenceFrm = padRef.imageJrTo2DArray();
+		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
+		int debugX = 100, debugY = 90;
+
+		for ( int y = 0; y < targetFrm.length; y += macroBlkSize ) {
+			for ( int x = 0; x < targetFrm[y].length; x += macroBlkSize ) {
+
+				// find predicted block
+				bestMatch = sequentialSearchMSD( targetFrm, referenceFrm, x, y,
+						p, macroBlkSize );
+				// DEBUG
+				if ( x > debugX && y > debugY && x < debugX + 10
+						&& y < debugY + 10 ) {
+					System.out.println( "\n[@x,y=" + x + "," + y + "]:\t"
+							+ bestMatch.toString() );
+				}
+				motionCompensation[y][x][1] = x - bestMatch.getxTopLeft();
+				motionCompensation[y][x][2] = y - bestMatch.getyTopLeft();
+
+				// store each error_pixel_value
+				for ( int i = 0; i < macroBlkSize; i++ ) {
+					for ( int j = 0; j < macroBlkSize; j++ ) {
+
+						if ( ( bestMatch.getxTopLeft() + j ) < referenceFrm[0].length
+								&& ( bestMatch.getyTopLeft() + i ) < referenceFrm.length
+								&& ( x + j ) < referenceFrm[0].length
+								&& ( y + i ) < referenceFrm.length ) {
+
+							motionCompensation[y + i][x + j][0] = Math
+									.abs( targetFrm[y + i][x + j]
+											- referenceFrm[bestMatch
+													.getyTopLeft() + i][bestMatch
+													.getxTopLeft() + j] );
+
+							errorImg.setPixel( x + j, y + i,
+									motionCompensation[y + i][x + j][0] );
+
+						}
+					}
+				}
+
+			}// loop col ends
+		}// loop row ends
+
+		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
+				targetImg.getH() );
+		ImageJr mappedError = mapResidual( errorDepadded );
+
+		// mappedError.display( "error image" );
+		// mappedError.write2PPM( "out.ppm" );
+		// Thread.sleep( 10000 );
+
+		// DEBUG
+		// System.out.println( "motion compensation[][]:" );
+		// for ( int i = 0; i < motionCompensation.length; i += macroBlkSize ) {
+		// for ( int j = 0; j < motionCompensation[0].length; j += macroBlkSize
+		// ) {
+		// System.out.print( "[ " + motionCompensation[i][j][0] + ", "
+		// + motionCompensation[i][j][1] + ", "
+		// + motionCompensation[i][j][2] + " ] " );
+		// }
+		// System.out.println();
+		// }
 
 		// mappedError.display( "error" );
 		// Thread.sleep( 4000 );
-	}// note that macroblock sizse would affect the compression ratio
+	}// note that macroblock size would affect the compression ratio
 
 	public void MC_w_logSearch( ImageJr targetImg, String imgNameT,
 			ImageJr referenceImg, String imgNameRef, int p,
@@ -414,7 +501,6 @@ public class Prep {
 		}
 	}
 
-	/** DEBUG */
 	public ReferenceFrameBlock logarithmicSearchMSD( int[][] target,
 			int[][] reference, int tx0, int ty0, int p, int macroBlkSize )
 	{/*
@@ -505,7 +591,7 @@ public class Prep {
 		return findMinDiff( diffs );
 	}
 
-	/** DEBUT build a 2d square array */
+	/** DEBUG build a 2d square array */
 	public void square2dArray( int p )
 	{
 		int[][] array = new int[2 * p + 1][2 * p + 1];
@@ -528,61 +614,66 @@ public class Prep {
 	{
 		for ( int i = 0; i < a.length; i++ ) {
 			for ( int j = 0; j < a[i].length; j++ ) {
-				System.out.print( a[i][j][0] + " " + a[i][j][1] + " "
-						+ a[i][j][2] + "\t" );
+				System.out.print( "[ " );
+				for ( int j2 = 0; j2 < a[0][0].length; j2++ ) {
+					System.out.print( a[i][j][j2] + " " );
+				}
+				System.out.print( "]" );
 			}
 			System.out.println();
 		}
 	}
 
-	/** DEBUG simplified & test version of log search */
-	public ReferenceFrameBlock logSearchJr( int[][] target, int[][] reference,
-			int tx0, int ty0, int p, int macroBlkSize )
-	{/*
-	 * If the difference between the target block and the candidate block at the
-	 * same position in the past frame is below some threshold then no motion
-	 */
-
-		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
-		while ( p >= 0 ) {
-
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
-					meanAbsDiff( target, reference, tx0, ty0, tx0 - p, ty0 - p,
-							macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0, ty0 - p, meanAbsDiff(
-					target, reference, tx0, ty0, tx0, ty0 - p, macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0 + p, ty0 - p,
-					meanAbsDiff( target, reference, tx0, ty0, tx0 + p, ty0 - p,
-							macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0, meanAbsDiff(
-					target, reference, tx0, ty0, tx0 - p, ty0, macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0, ty0, meanAbsDiff( target,
-					reference, tx0, ty0, tx0, ty0, macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0 + p, ty0, meanAbsDiff(
-					target, reference, tx0, ty0, tx0 + p, ty0, macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 + p,
-					meanSquareDiff( target, reference, tx0, ty0, tx0 - p, ty0
-							+ p, macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0, ty0 + p, meanAbsDiff(
-					target, reference, tx0, ty0, tx0, ty0 + p, macroBlkSize ) ) );
-
-			diffs.add( new ReferenceFrameBlock( tx0 + p, ty0 + p,
-					meanAbsDiff( target, reference, tx0, ty0, tx0 + p, ty0 + p,
-							macroBlkSize ) ) );
-			p /= 2;
-			ReferenceFrameBlock min = findMinDiff( diffs );
-			tx0 = min.getxTopLeft();
-			ty0 = min.getyTopLeft();
-		}
-		return findMinDiff( diffs );
-	}
+	// /** DEBUG simplified & test version of log search */
+	// public ReferenceFrameBlock logSearchJr( int[][] target, int[][]
+	// reference,
+	// int tx0, int ty0, int p, int macroBlkSize )
+	// {/*
+	// * If the difference between the target block and the candidate block at
+	// the
+	// * same position in the past frame is below some threshold then no motion
+	// */
+	//
+	// List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
+	// while ( p >= 0 ) {
+	//
+	// diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 - p,
+	// meanAbsDiff( target, reference, tx0, ty0, tx0 - p, ty0 - p,
+	// macroBlkSize ) ) );
+	//
+	// diffs.add( new ReferenceFrameBlock( tx0, ty0 - p, meanAbsDiff(
+	// target, reference, tx0, ty0, tx0, ty0 - p, macroBlkSize ) ) );
+	//
+	// diffs.add( new ReferenceFrameBlock( tx0 + p, ty0 - p,
+	// meanAbsDiff( target, reference, tx0, ty0, tx0 + p, ty0 - p,
+	// macroBlkSize ) ) );
+	//
+	// diffs.add( new ReferenceFrameBlock( tx0 - p, ty0, meanAbsDiff(
+	// target, reference, tx0, ty0, tx0 - p, ty0, macroBlkSize ) ) );
+	//
+	// diffs.add( new ReferenceFrameBlock( tx0, ty0, meanAbsDiff( target,
+	// reference, tx0, ty0, tx0, ty0, macroBlkSize ) ) );
+	//
+	// diffs.add( new ReferenceFrameBlock( tx0 + p, ty0, meanAbsDiff(
+	// target, reference, tx0, ty0, tx0 + p, ty0, macroBlkSize ) ) );
+	//
+	// diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 + p,
+	// meanSquareDiff( target, reference, tx0, ty0, tx0 - p, ty0
+	// + p, macroBlkSize ) ) );
+	//
+	// diffs.add( new ReferenceFrameBlock( tx0, ty0 + p, meanAbsDiff(
+	// target, reference, tx0, ty0, tx0, ty0 + p, macroBlkSize ) ) );
+	//
+	// diffs.add( new ReferenceFrameBlock( tx0 + p, ty0 + p,
+	// meanAbsDiff( target, reference, tx0, ty0, tx0 + p, ty0 + p,
+	// macroBlkSize ) ) );
+	// p /= 2;
+	// ReferenceFrameBlock min = findMinDiff( diffs );
+	// tx0 = min.getxTopLeft();
+	// ty0 = min.getyTopLeft();
+	// }
+	// return findMinDiff( diffs );
+	// }
 
 	public int[][] toGray( Image img )
 	{
@@ -737,7 +828,8 @@ public class Prep {
 		return list.get( list.size() / 2 );
 	}
 
-	public int getSpecifiedPercentileValue( ImageJr residual, float percentile )
+	public int getSpecifiedHigerPercentileDiffValue( ImageJr residual,
+			float percentile )
 	{
 		List<Integer> list = new LinkedList<Integer>();
 		int sum = 0;
@@ -748,7 +840,7 @@ public class Prep {
 			}
 		}
 		Collections.sort( list );
-		int startIdx = (int) Math.round( list.size() * ( percentile / 100. ) );
+		int startIdx = (int) Math.round( list.size() * percentile * 1. - 1 );
 		for ( int i = startIdx; i < list.size(); i++ ) {
 			sum += list.get( i );
 		}
@@ -760,7 +852,7 @@ public class Prep {
 		// }
 		System.out.println();
 		System.out.println( list.size() );
-		System.out.println( list.size() * ( percentile / 100. ) );
+		System.out.println( list.size() * ( percentile ) );
 		System.out.println( "sum: " + sum );
 		System.out.println( "startIdx: " + startIdx );
 
@@ -801,7 +893,8 @@ public class Prep {
 	{
 		ImageJr mappedResidual = new ImageJr( residual.getW(), residual.getH() );
 		// float mean = getMeanPixValue( residual );
-		float threshold = getSpecifiedPercentileValue( residual, (float) 90/* 98.5 */);
+		float threshold = getSpecifiedHigerPercentileDiffValue( residual,
+				(float) .9/* 98.5 */);
 		System.out.println( threshold );
 
 		int value = 0;

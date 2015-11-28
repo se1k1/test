@@ -34,6 +34,8 @@ public class hw4_test {
 
 		pp.MC_w_logSearch( t22, targetName, r20, refName, 1, 0, residual,
 				motionCompensation, macroBlkSize );
+		pp.print3DArray( motionCompensation );
+		
 
 	}
 

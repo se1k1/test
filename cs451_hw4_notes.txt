@@ -1,3 +1,20 @@
+task 2-a :
+- find a closest static block within the nth frame (target frame)
+must measure the distance
+- statick block can be found by comparing the target frm and the 
+ref frm
+	- compare Tblk and Rblk
+	- just do the MC, you get the motionComp [][][], then you have the data
+	- if motionComp[][1] and if motionComp[][2] is zero, and diff=if motionComp[][0] is a small value, then replace the dynamic block with the chosen static block.
+	-
+
+1. best match to the targetBlock
+2. closest to the target block
+
+
+task 2-b :
+=====================================
+
 
 
 Use IDB and implement the following steps to achieve this task:
