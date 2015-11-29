@@ -1,3 +1,45 @@
+public int getSpecifiedPercentileLowerMVValue( int[][][] array,
+			float percentile )
+	{
+		List<Integer> list = new LinkedList<Integer>();
+		int sum = 0;
+
+		for ( int y = 0; y < array.length; y++ ) {
+			for ( int x = 0; x < array[0].length; x++ ) {
+				list.add( (int) Math
+						.round( ( array[y][x][1] + array[y][x][2] ) / 2. ) );
+			}
+		}
+		Collections.sort( list );
+		int stopIdx = (int) Math.round( list.size() * percentile * 1. );
+		for ( int i = 0; i < stopIdx; i++ ) {
+			sum += list.get( i );
+		}
+
+		return sum / ( stopIdx + 1 );
+	}
+
+
+public int getSpecifiedPercentileLowerDifValue( int[][][] array,
+			float percentile )
+	{
+		List<Integer> list = new LinkedList<Integer>();
+		int sum = 0;
+
+		for ( int y = 0; y < array.length; y++ ) {
+			for ( int x = 0; x < array[0].length; x++ ) {
+				list.add( array[y][x][0] );
+			}
+		}
+		Collections.sort( list );
+		int stopIdx = (int) Math.round( list.size() * percentile * 1. );
+		for ( int i = 0; i < stopIdx; i++ ) {
+			sum += list.get( i );
+		}
+
+		return sum / ( stopIdx + 1 );
+	}
+
 /**
 	 * e(x,y) = cn+1(x,y) - cn(x-dx ,y-dy ) k: Search Size i1: reference frame
 	 * i2: target frame

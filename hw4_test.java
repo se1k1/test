@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class hw4_test {
 
-	@Test
+	//@Test
 	public void test_mc_with_logSearch() throws InterruptedException,
 			IOException
 	{

@@ -48,73 +48,105 @@ public class Task2 extends Prep {
 
 	}
 
-	// scan through the img and replace dynamic blocks with the specified
-	// corresponding block
-	public void identifyDinamicBlk()
-	{
+	// public int s( int[][][] array, float percentile )
+	// {
+	// List<Integer> list = new LinkedList<Integer>();
+	// int sum = 0;
+	//
+	// for ( int y = 0; y < array.length; y++ ) {
+	// for ( int x = 0; x < array[0].length; x++ ) {
+	// list.add( array[y][x][0] );
+	// }
+	// }
+	// Collections.sort( list );
+	// int stopIdx = (int) Math.round( list.size() * percentile * 1. );
+	// for ( int i = 0; i < stopIdx; i++ ) {
+	// sum += list.get( i );
+	// }
+	// return sum / ( stopIdx + 1 );
+	// }
 
-	}
-
-	public int s( int[][][] array, float percentile )
+	/**
+	 * compute specified lower percentage average values: difference and motion
+	 * vector threshold[0]=avg of upper ?? percentile diff values (dynamic
+	 * block) threshold[1]=avg of lower ?? percentile mv values threshold[2]=avg
+	 * of lower ?? percentile diff values (static block)
+	 */
+	public int[] getThresholds( int[][][] array, float percentileDiffDynamic,
+			float percentileDiffStatic, float percentileMV, int macroBlkSize )
 	{
-		List<Integer> list = new LinkedList<Integer>();
-		int sum = 0;
+		List<Integer> diffs = new LinkedList<Integer>();
+		List<Integer> mvs = new LinkedList<Integer>();
+		int sumDiffDynamic = 0, sumDiffStatic = 0, sumMV = 0;
 
 		for ( int y = 0; y < array.length; y++ ) {
 			for ( int x = 0; x < array[0].length; x++ ) {
-				list.add( array[y][x][0] );
+				diffs.add( array[y][x][0] );
+				if ( x % macroBlkSize == 0 && y % macroBlkSize == 0 ) {
+					mvs.add( ( array[y][x][1] + array[y][x][2] ) / 2 );
+				}
 			}
 		}
-		Collections.sort( list );
-		int stopIdx = (int) Math.round( list.size() * percentile * 1. );
-		for ( int i = 0; i < stopIdx; i++ ) {
-			sum += list.get( i );
+
+		Collections.sort( diffs );
+		Collections.sort( mvs );
+
+		// DEBUG
+		System.out.println( diffs );
+		System.out.println( mvs );
+
+		// lower ??%
+		int stopIdxMV = (int) Math.round( mvs.size() * percentileMV * 1. ) - 1;
+
+		// upper ??%
+		int startIdxDiffDynamic = (int) Math.round( diffs.size()
+				* percentileDiffDynamic * 1. ) - 1;
+
+		// lower ??%
+		int stopIdxDiffStatic = (int) Math.round( diffs.size()
+				* percentileDiffStatic * 1. ) - 1;
+
+		for ( int i = 0; i <= stopIdxMV; i++ ) {
+			sumMV += mvs.get( i );
 		}
-		return sum / ( stopIdx + 1 );
-	}
 
-	public int getSpecifiedPercentileLowerMVValue( int[][][] array,
-			float percentile )
-	{
-		List<Integer> list = new LinkedList<Integer>();
-		int sum = 0;
-
-		for ( int y = 0; y < array.length; y++ ) {
-			for ( int x = 0; x < array[0].length; x++ ) {
-				list.add( (int) Math
-						.round( ( array[y][x][1] + array[y][x][2] ) / 2. ) );
+		for ( int i = 0; i < diffs.size(); i++ ) {
+			if ( i > startIdxDiffDynamic ) {
+				sumDiffDynamic += diffs.get( i );
+			}
+			if ( i < stopIdxDiffStatic ) {
+				sumDiffStatic += diffs.get( i );
 			}
 		}
-		Collections.sort( list );
-		int stopIdx = (int) Math.round( list.size() * percentile * 1. );
-		for ( int i = 0; i < stopIdx; i++ ) {
-			sum += list.get( i );
-		}
 
-		return sum / ( stopIdx + 1 );
+		// DEBUG
+		System.out.println( "sumMV=" + sumMV + "\t" + "sumDiff="
+				+ sumDiffDynamic + "sumDiffStatic=" + sumDiffStatic );
+
+		System.out.println( "MV size=" + stopIdxMV + 1 + "\t"
+				+ "DiffDynamic size=" + startIdxDiffDynamic + "\t"
+				+ "DiffStatic size=" + stopIdxDiffStatic + 1 );
+
+		System.out.println( "stopIdxMV=" + ( stopIdxMV + 1 ) + "\t"
+				+ "startIdxDiffDynamic="
+				+ ( diffs.size() - startIdxDiffDynamic + 1. ) + "\t"
+				+ "stopIdxDiffStatic=" + stopIdxDiffStatic );
+
+		int[] thresholds =
+		{
+				(int) Math.round( sumDiffDynamic
+						/ ( diffs.size() - startIdxDiffDynamic + 1. ) ),
+				(int) Math.round( sumMV / ( stopIdxMV + 1. ) ),
+				(int) Math.round( sumDiffStatic / ( stopIdxDiffStatic + 1. ) ) };
+
+		return thresholds;
 	}
 
-	public int getSpecifiedPercentileLowerDifValue( int[][][] array,
-			float percentile )
-	{
-		List<Integer> list = new LinkedList<Integer>();
-		int sum = 0;
-
-		for ( int y = 0; y < array.length; y++ ) {
-			for ( int x = 0; x < array[0].length; x++ ) {
-				list.add( array[y][x][0] );
-			}
-		}
-		Collections.sort( list );
-		int stopIdx = (int) Math.round( list.size() * percentile * 1. );
-		for ( int i = 0; i < stopIdx; i++ ) {
-			sum += list.get( i );
-		}
-
-		return sum / ( stopIdx + 1 );
-	}
-
-	public int[] sequentialySearchStaticNeighborBlk(
+	/**
+	 * return values: coordinate[0]=x, coordinate[0]=y of the closest static
+	 * neighbor block
+	 */
+	public int[] sequentiallySearchStaticNeighborBlk(
 			int[][][] motionCompensation, int tx0, int ty0, int p,
 			int macroBlkSize, int threshold )
 	{
@@ -205,8 +237,105 @@ public class Task2 extends Prep {
 			String imgNameT, String imgNameRef, int[][][] MC, int macroBlkSize,
 			int p ) throws InterruptedException, IOException
 	{
-		MC( targetImg, imgNameT, targetImg, imgNameRef, p, 0, new ImageJr(),
-				MC, macroBlkSize );
+		ImageJr copyOftargetImg = targetImg.deep_copy_image_ks();
+		/*
+		 * scan through the img and replace dynamic blocks with the specified
+		 * corresponding block
+		 */
+		MC( targetImg, imgNameT, refImg, imgNameRef, p, 0, new ImageJr(), MC,
+				macroBlkSize );
+
+		// DEBUG
+		System.out.println( "motion compensation[][]:" );
+		for ( int i = 0; i < MC.length; i += macroBlkSize ) {
+			for ( int j = 0; j < MC[0].length; j += macroBlkSize ) {
+				System.out.print( "[ " + MC[i][j][0] + ", " + MC[i][j][1]
+						+ ", " + MC[i][j][2] + " ] " );
+			}
+			System.out.println();
+		}
+
+		int[] thresholds = new int[3];
+		int[] coordinateNeighborStaticBlk = new int[2];
+		 thresholds = getThresholds( MC, (float) .9999, (float) .1, (float)
+		 .3,
+		 macroBlkSize );
+
+		thresholds[0] = 50;// dynamic
+		thresholds[1] = 0;// mv
+		thresholds[2] = 0;// neightbor static blk
+
+		System.out.println( "threshold diff dynamic: " + thresholds[0] );
+		System.out.println( "threshold mv: " + thresholds[1] );
+		System.out.println( "threshold diff static: " + thresholds[2] );
+
+		// boolean isDynamic = false;
+		int avgMV = 0, avgDiff = 0, sumDiff = 0;
+
+		for ( int i = 0; i < MC.length; i += macroBlkSize ) {
+			sumDiff = 0;
+			for ( int j = 0; j < MC[0].length; j += macroBlkSize ) {
+
+				// 1. is this macroblock dynamic?
+
+				// if MV is larger than threshold, then go ahead and replace
+				// the block
+				avgMV = ( Math.abs( MC[i][j][1] ) + Math.abs( MC[i][j][2] ) ) / 2;
+				if ( avgMV > ( thresholds[1] ) + 1
+						|| avgMV < ( thresholds[1] ) - 1 ) {
+
+					coordinateNeighborStaticBlk = sequentiallySearchStaticNeighborBlk(
+							MC, j, i, targetImg.getW() / 2, macroBlkSize,
+							thresholds[2] );
+
+					// DEBUG
+					System.out.println( "[@x,y=" + j + "," + i
+							+ "] avgMV > thresholds[1]<--" + thresholds[1]
+							+ ": " + avgMV );
+					System.out.println( "replace[" + j + "," + i + "] with ["
+							+ coordinateNeighborStaticBlk[0] + ","
+							+ coordinateNeighborStaticBlk[1] + "]" );
+
+					replaceABlock( copyOftargetImg, targetImg, j, i,
+							coordinateNeighborStaticBlk[0],
+							coordinateNeighborStaticBlk[1], macroBlkSize );
+					continue;
+				} else {
+
+					// get the avg diff of the current macroblock
+					for ( int k0 = 0; k0 < macroBlkSize; k0++ ) {
+						for ( int k1 = 0; k1 < macroBlkSize; k1++ ) {
+							sumDiff += MC[i + k0][j + k1][0];
+						}
+					}
+					avgDiff = sumDiff / ( macroBlkSize * macroBlkSize );
+
+					// DEBUG
+					// System.out.println( "[@x,y=" + j + "," + i
+					// + "] avg difference: " + avgDiff );
+
+					// replace if the block contains moving obj
+					if ( avgDiff > thresholds[0] ) {
+
+						// DEBUG
+						System.out.println( "[@x,y=" + j + "," + i
+								+ "] avgDff > thresholds[0]<--" + thresholds[0]
+								+ ": " + avgDiff );
+
+						coordinateNeighborStaticBlk = sequentiallySearchStaticNeighborBlk(
+								MC, j, i, targetImg.getW() / 2, macroBlkSize,
+								thresholds[2] );
+
+						replaceABlock( copyOftargetImg, targetImg, j, i,
+								coordinateNeighborStaticBlk[0],
+								coordinateNeighborStaticBlk[1], macroBlkSize );
+					}
+				}
+			}
+		}
+		copyOftargetImg.display( "replaced image" );
+		Thread.sleep( 5000 );
+		// get thre
 		// int[][] movingObjCoordinates =
 		// sequentialySearchStaticNeighborBlk( MC, tx0, ty0, p, macroBlkSize,
 		// threshold )
@@ -218,20 +347,20 @@ public class Task2 extends Prep {
 	{
 	}
 
-	public void replaceABlock( ImageJr targetImg, ImageJr refImg, int tx,
-			int ty, int rx, int ry, int macroBlkSize )
+	public void replaceABlock( ImageJr targetImgNew, ImageJr targetImgOld,
+			int tx, int ty, int rx, int ry, int macroBlkSize )
 			throws InterruptedException
 	{
 		int[] rgb = new int[3];
 		for ( int i = 0; i < macroBlkSize; i++ ) {
 			for ( int j = 0; j < macroBlkSize; j++ ) {
 
-				refImg.getPixel( rx + j, ry + i, rgb );
-				targetImg.setPixel( tx + j, ty + i, rgb );
+				targetImgOld.getPixel( rx + j, ry + i, rgb );
+				targetImgNew.setPixel( tx + j, ty + i, rgb );
 			}
 		}
-		targetImg.display( "Altered image" );
-		Thread.sleep( 5000 );
+		 targetImgNew.display( "Altered image" );
+		 Thread.sleep( 5000 );
 	}
 
 	/**
@@ -239,7 +368,7 @@ public class Task2 extends Prep {
 	 * 
 	 * @throws InterruptedException
 	 */
-	public void replaceABlock( ImageJr targetImg, int tx, int ty, int rx,
+	public void replaceABlock( ImageJr targetImgNew, int tx, int ty, int rx,
 			int ry, int macroBlkSize ) throws InterruptedException
 	{
 
@@ -249,11 +378,11 @@ public class Task2 extends Prep {
 		for ( int i = 0; i < macroBlkSize; i++ ) {
 			for ( int j = 0; j < macroBlkSize; j++ ) {
 				fifthFrmImg.getPixel( rx + j, ry + i, rgb );
-				targetImg.setPixel( tx + j, ty + i, rgb );
+				targetImgNew.setPixel( tx + j, ty + i, rgb );
 			}
 		}
 
-		targetImg.display( "Altered image" );
+		targetImgNew.display( "Altered image" );
 		Thread.sleep( 5000 );
 	}
 

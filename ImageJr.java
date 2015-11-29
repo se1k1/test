@@ -1,3 +1,4 @@
+
 public class ImageJr extends Image {
 	// int block_size = 8;
 
@@ -42,10 +43,10 @@ public class ImageJr extends Image {
 		return rgb[2];
 	}
 
-	public Image deep_copy_image_ks()
+	public ImageJr deep_copy_image_ks()
 	{
 
-		Image clone = new Image( width, height );
+		Image clone = new ImageJr( width, height );
 		int[] temp_rgb = new int[3];
 
 		for ( int y = 0; y < height; y++ ) {
@@ -54,7 +55,7 @@ public class ImageJr extends Image {
 				clone.setPixel( x, y, temp_rgb );
 			}
 		}
-		return clone;
+		return (ImageJr)clone;
 	}
 
 	public ImageJr padImage( int macroBlkSize )
@@ -100,7 +101,7 @@ public class ImageJr extends Image {
 		}
 		return adjusted;
 	}
-
+/** paddedSize[0] = width; paddedSize[1] = height */
 	public void paddedSize( int macroBlkSize, int[] paddedSize )
 	{
 		paddedSize[0] = width;

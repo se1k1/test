@@ -1,21 +1,58 @@
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.Random;
 
 import org.junit.Test;
 
 public class hw4_task2_test {
 	@Test
-	public void test_highLowPercentileValues()
+	public void test_task2_1() throws InterruptedException, IOException
 	{
 		Task2 t2 = new Task2();
 		Prep pp = new Prep();
-		int[][][] array = new int[5][5][3];
-		autoFill3dArray( array, 1, 10, 0, 3 );
-		pp.print3DArray( array );
+		String imgNameT = "Walk_060.ppm";
+		String imgNameRef = "Walk_057.ppm";
+		// String targetName = "Walk_022.ppm";
+		// String refName = "Walk_022.ppm";
 
-		System.out.println(t2.getSpecifiedPercentileLowerMVValue( array, (float).1 ));
-		System.out.println(t2.getSpecifiedPercentileLowerDifValue( array, (float).25 ));
+		ImageJr targetImg = new ImageJr( imgNameT );
+		ImageJr referenceImg = new ImageJr( imgNameRef );
+		ImageJr residualImg = new ImageJr();
+		int[] paddedSize = new int[2], thresholds = new int[3];
+		int macroBlkSize = 16, p = 12;
+		targetImg.paddedSize( macroBlkSize, paddedSize );
+		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];
+
+//		pp.MC( targetImg, imgNameT, referenceImg, imgNameRef, p, 0,
+//				residualImg, MC, macroBlkSize, thresholds );
+		
+	//	pp.print3DArray( MC );
+		t2.removeMovingObj01( targetImg, referenceImg, imgNameT, imgNameRef, MC, macroBlkSize, p );
+		
+	}
+
+	// @Test
+	public void test_obtainingThresholds()
+	{
+		Task2 t2 = new Task2();
+		Prep pp = new Prep();
+		int[][][] array = new int[10][10][3];
+		autoFill3dArray( array, 5, 10, 0, 3 );
+		pp.print3DArray( array );
+		int macroBlkSize = 1;
+
+		// test_highLowPercentileValues()
+		// System.out.println(t2.getSpecifiedPercentileLowerMVValue( array,
+		// (float).1 ));
+		// System.out.println(t2.getSpecifiedPercentileLowerDifValue( array,
+		// (float).25 ));
+
+		int[] values = t2.getThresholds( array, (float) .9, (float) .1,
+				(float) .3, macroBlkSize );
+		System.out.println( values[0] );
+		System.out.println( values[1] );
+		System.out.println( values[2] );
 	}
 
 	// @Test
@@ -28,7 +65,7 @@ public class hw4_task2_test {
 		pp.print3DArray( array );
 		int macroBlkSize = 1, threshold = 3;
 		int tx0 = 1, ty0 = 1, p = 10;
-		int[] coordinate = t2.sequentialySearchStaticNeighborBlk( array, tx0,
+		int[] coordinate = t2.sequentiallySearchStaticNeighborBlk( array, tx0,
 				ty0, p, macroBlkSize, threshold );
 		System.out.println( coordinate[0] );
 		System.out.println( coordinate[1] );

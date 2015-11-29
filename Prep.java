@@ -409,7 +409,7 @@ public class Prep {
 				meanSquareDiff( target, reference, tx0, ty0, tx0, ty0,
 						macroBlkSize ) );
 		if ( sameLoc.getDiffValue() < threshold ) {
-			System.out.println( "same block error < threashold" );
+			// System.out.println( "same block error < threashold" );
 			return sameLoc;
 		}
 
