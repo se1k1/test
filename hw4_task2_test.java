@@ -24,12 +24,22 @@ public class hw4_task2_test {
 		targetImg.paddedSize( macroBlkSize, paddedSize );
 		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];
 
-//		pp.MC( targetImg, imgNameT, referenceImg, imgNameRef, p, 0,
-//				residualImg, MC, macroBlkSize, thresholds );
-		
-	//	pp.print3DArray( MC );
-		t2.removeMovingObj01( targetImg, referenceImg, imgNameT, imgNameRef, MC, macroBlkSize, p );
-		
+		// pp.MC( targetImg, imgNameT, referenceImg, imgNameRef, p, 0,
+		// residualImg, MC, macroBlkSize, thresholds );
+
+		t2.removeMovingObj01( targetImg, referenceImg, imgNameT, imgNameRef,
+				MC, macroBlkSize, p );
+		//pp.print3DArray( MC );
+		System.out.println( "motion compensation[][](outside the MC() method):" );
+		for ( int i = 0; i < MC.length; i += macroBlkSize ) {
+			for ( int j = 0; j < MC[0].length; j += macroBlkSize ) {
+				System.out.print( "[ " + MC[i][j][0] + ", "
+						+ MC[i][j][1] + ", "
+						+ MC[i][j][2] + " ("+j+","+i+")] " );
+			}
+			System.out.println();
+		}
+
 	}
 
 	// @Test
@@ -67,8 +77,8 @@ public class hw4_task2_test {
 		int tx0 = 1, ty0 = 1, p = 10;
 		int[] coordinate = t2.sequentiallySearchStaticNeighborBlk( array, tx0,
 				ty0, p, macroBlkSize, threshold );
-		System.out.println( coordinate[0] );
-		System.out.println( coordinate[1] );
+		System.out.println( coordinate[0] );// x
+		System.out.println( coordinate[1] );// y
 	}
 
 	// @Test
@@ -108,7 +118,8 @@ public class hw4_task2_test {
 			for ( int j = 0; j < array[0].length; j++ ) {
 				for ( int j2 = 0; j2 < array[0][0].length; j2++ ) {
 					if ( j2 > 0 ) {
-						array[i][j][j2] = randomNumGen( minMV, maxMV );
+						// array[i][j][j2] = randomNumGen( minMV, maxMV );
+						array[i][j][j2] = 0;
 					} else {
 						array[i][j][j2] = randomNumGen( minDiff, maxDiff );
 					}

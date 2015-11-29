@@ -143,10 +143,43 @@ public class Task2 extends Prep {
 	}
 
 	/**
-	 * return values: coordinate[0]=x, coordinate[0]=y of the closest static
+	 * return values: coordinate[0]=x, coordinate[1]=y of the closest static
 	 * neighbor block
 	 */
 	public int[] sequentiallySearchStaticNeighborBlk(
+			int[][][] motionCompensation, int tx0, int ty0, int p,
+			int macroBlkSize, int threshold )
+	{
+		p=p*macroBlkSize;
+		int startX = ( tx0 - p < 0 ? 0 : tx0 - p ), startY = ( ty0 - p < 0 ? 0
+				: ty0 - p );
+		int stopX = ( tx0 + p > motionCompensation[0].length ? motionCompensation[0].length
+				: tx0 + p ), stopY = ( ty0 + p > motionCompensation.length ? motionCompensation[0].length
+				: ty0 + p );
+
+		int[] coordinate = new int[2];
+		for ( int i = startY; i < stopY; i++ ) {
+			for ( int j = startX; j < stopX; j++ ) {
+	
+				
+				if ( /*i > -1 && i < motionCompensation.length && j > -1
+						&& j < motionCompensation[0].length
+						&& */motionCompensation[i][j][1] == 0
+						&& motionCompensation[i][j][2] == 0
+						&& motionCompensation[i][j][0] <= threshold ) {
+					System.out.println("conditions met @ y,x=i,j="+i+","+j);
+					System.out.println("threshold="+threshold);
+					coordinate[0] = j;// x coord
+					coordinate[1] = i;// y coord
+					return coordinate;
+				}
+			}
+		}
+
+		return coordinate;
+	}
+
+	public int[] sequentiallySearchStaticNeighborBlk_garbage(
 			int[][][] motionCompensation, int tx0, int ty0, int p,
 			int macroBlkSize, int threshold )
 	{
@@ -154,6 +187,8 @@ public class Task2 extends Prep {
 		int[] coordinate = new int[2];
 		for ( int i = 1; i <= p; i++ ) {
 
+			System.out.println( "check[" + ( ty0 - i ) + "," + ( tx0 - i )
+					+ "]" );
 			if ( tx0 - i > -1 && tx0 - i < motionCompensation[0].length
 					&& ty0 - i > -1 && ty0 - i < motionCompensation.length
 					&& motionCompensation[ty0 - i][tx0 - i][1] == 0
@@ -163,6 +198,7 @@ public class Task2 extends Prep {
 				coordinate[1] = ty0 - i;
 				return coordinate;
 			}
+			System.out.println( "check[" + ( ty0 - i ) + "," + ( tx0 ) + "]" );
 			if ( ty0 - i > -1 && ty0 - i < motionCompensation.length
 					&& motionCompensation[ty0 - i][tx0][1] == 0
 					&& motionCompensation[ty0 - i][tx0][2] == 0
@@ -172,6 +208,8 @@ public class Task2 extends Prep {
 				return coordinate;
 
 			}
+			System.out.println( "check[" + ( ty0 - i ) + "," + ( tx0 + i )
+					+ "]" );
 			if ( tx0 + i > -1 && tx0 + i < motionCompensation[0].length
 					&& ty0 - i > -1 && ty0 - i < motionCompensation.length
 					&& motionCompensation[ty0 - i][tx0 + i][1] == 0
@@ -182,6 +220,7 @@ public class Task2 extends Prep {
 				return coordinate;
 
 			}
+			System.out.println( "check[" + ( ty0 ) + "," + ( tx0 - i ) + "]" );
 			if ( tx0 - i > -1 && tx0 - i < motionCompensation.length
 					&& motionCompensation[ty0][tx0 - i][1] == 0
 					&& motionCompensation[ty0][tx0 - i][2] == 0
@@ -190,7 +229,7 @@ public class Task2 extends Prep {
 				coordinate[1] = ty0;
 				return coordinate;
 			}
-
+			System.out.println( "check[" + ( ty0 ) + "," + ( tx0 + i ) + "]" );
 			if ( tx0 + i > -1 && tx0 + i < motionCompensation[0].length
 					&& motionCompensation[ty0][tx0 + i][1] == 0
 					&& motionCompensation[ty0][tx0 + i][2] == 0
@@ -199,6 +238,8 @@ public class Task2 extends Prep {
 				coordinate[1] = ty0;
 				return coordinate;
 			}
+			System.out.println( "check[" + ( ty0 + i ) + "," + ( tx0 - i )
+					+ "]" );
 			if ( tx0 - i > -1 && tx0 - i < motionCompensation[0].length
 					&& ty0 + i > -1 && ty0 + i < motionCompensation.length
 					&& motionCompensation[ty0 + i][tx0 - i][1] == 0
@@ -208,7 +249,7 @@ public class Task2 extends Prep {
 				coordinate[1] = ty0 + i;
 				return coordinate;
 			}
-
+			System.out.println( "check[" + ( ty0 - i ) + "," + ( tx0 ) + "]" );
 			if ( ty0 + i > -1 && ty0 + i < motionCompensation.length
 					&& motionCompensation[ty0 + i][tx0][1] == 0
 					&& motionCompensation[ty0 + i][tx0][2] == 0
@@ -217,6 +258,8 @@ public class Task2 extends Prep {
 				coordinate[1] = ty0 + i;
 				return coordinate;
 			}
+			System.out.println( "check[" + ( ty0 - i ) + "," + ( tx0 - i )
+					+ "]" );
 			if ( tx0 + i > -1 && tx0 + i < motionCompensation[0].length
 					&& ty0 + i > -1 && ty0 + i < motionCompensation.length
 					&& motionCompensation[ty0 + i][tx0 + i][1] == 0
@@ -257,13 +300,12 @@ public class Task2 extends Prep {
 
 		int[] thresholds = new int[3];
 		int[] coordinateNeighborStaticBlk = new int[2];
-		 thresholds = getThresholds( MC, (float) .9999, (float) .1, (float)
-		 .3,
-		 macroBlkSize );
+		thresholds = getThresholds( MC, (float) .9999, (float) .1, (float) .3,
+				macroBlkSize );
 
 		thresholds[0] = 50;// dynamic
 		thresholds[1] = 0;// mv
-		thresholds[2] = 0;// neightbor static blk
+		thresholds[2] = 4;// neightbor static blk
 
 		System.out.println( "threshold diff dynamic: " + thresholds[0] );
 		System.out.println( "threshold mv: " + thresholds[1] );
@@ -285,7 +327,7 @@ public class Task2 extends Prep {
 						|| avgMV < ( thresholds[1] ) - 1 ) {
 
 					coordinateNeighborStaticBlk = sequentiallySearchStaticNeighborBlk(
-							MC, j, i, targetImg.getW() / 2, macroBlkSize,
+							MC, j, i, 2, macroBlkSize,
 							thresholds[2] );
 
 					// DEBUG
@@ -323,7 +365,7 @@ public class Task2 extends Prep {
 								+ ": " + avgDiff );
 
 						coordinateNeighborStaticBlk = sequentiallySearchStaticNeighborBlk(
-								MC, j, i, targetImg.getW() / 2, macroBlkSize,
+								MC, j, i, 2, macroBlkSize,
 								thresholds[2] );
 
 						replaceABlock( copyOftargetImg, targetImg, j, i,
@@ -359,8 +401,8 @@ public class Task2 extends Prep {
 				targetImgNew.setPixel( tx + j, ty + i, rgb );
 			}
 		}
-		 targetImgNew.display( "Altered image" );
-		 Thread.sleep( 5000 );
+		targetImgNew.display( "Altered image" );
+		Thread.sleep( 5000 );
 	}
 
 	/**
