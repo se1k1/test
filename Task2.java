@@ -150,7 +150,7 @@ public class Task2 extends Prep {
 			int[][][] motionCompensation, int tx0, int ty0, int p,
 			int macroBlkSize, int threshold )
 	{
-		p=p*macroBlkSize;
+		p = p * macroBlkSize;
 		int startX = ( tx0 - p < 0 ? 0 : tx0 - p ), startY = ( ty0 - p < 0 ? 0
 				: ty0 - p );
 		int stopX = ( tx0 + p > motionCompensation[0].length ? motionCompensation[0].length
@@ -160,15 +160,16 @@ public class Task2 extends Prep {
 		int[] coordinate = new int[2];
 		for ( int i = startY; i < stopY; i++ ) {
 			for ( int j = startX; j < stopX; j++ ) {
-	
-				
-				if ( /*i > -1 && i < motionCompensation.length && j > -1
-						&& j < motionCompensation[0].length
-						&& */motionCompensation[i][j][1] == 0
+
+				if ( /*
+					 * i > -1 && i < motionCompensation.length && j > -1 && j <
+					 * motionCompensation[0].length &&
+					 */motionCompensation[i][j][1] == 0
 						&& motionCompensation[i][j][2] == 0
 						&& motionCompensation[i][j][0] <= threshold ) {
-					System.out.println("conditions met @ y,x=i,j="+i+","+j);
-					System.out.println("threshold="+threshold);
+					System.out.println( "conditions met @ y,x=i,j=" + i + ","
+							+ j );
+					System.out.println( "threshold=" + threshold );
 					coordinate[0] = j;// x coord
 					coordinate[1] = i;// y coord
 					return coordinate;
@@ -327,8 +328,7 @@ public class Task2 extends Prep {
 						|| avgMV < ( thresholds[1] ) - 1 ) {
 
 					coordinateNeighborStaticBlk = sequentiallySearchStaticNeighborBlk(
-							MC, j, i, 2, macroBlkSize,
-							thresholds[2] );
+							MC, j, i, 2, macroBlkSize, thresholds[2] );
 
 					// DEBUG
 					System.out.println( "[@x,y=" + j + "," + i
@@ -365,8 +365,7 @@ public class Task2 extends Prep {
 								+ ": " + avgDiff );
 
 						coordinateNeighborStaticBlk = sequentiallySearchStaticNeighborBlk(
-								MC, j, i, 2, macroBlkSize,
-								thresholds[2] );
+								MC, j, i, 2, macroBlkSize, thresholds[2] );
 
 						replaceABlock( copyOftargetImg, targetImg, j, i,
 								coordinateNeighborStaticBlk[0],
@@ -375,8 +374,8 @@ public class Task2 extends Prep {
 				}
 			}
 		}
-		copyOftargetImg.display( "replaced image" );
-		Thread.sleep( 5000 );
+		// copyOftargetImg.display( "replaced image" );
+		// Thread.sleep( 5000 );
 		// get thre
 		// int[][] movingObjCoordinates =
 		// sequentialySearchStaticNeighborBlk( MC, tx0, ty0, p, macroBlkSize,
@@ -385,8 +384,114 @@ public class Task2 extends Prep {
 		// scan through macro blks in MC, and find moving objects
 	}
 
-	public void removeMovingObj02()
+	public void removeMovingObj02( ImageJr targetImg, ImageJr refImg,
+			String imgNameT, String imgNameRef, int[][][] MC, int macroBlkSize,
+			int p ) throws InterruptedException, IOException
 	{
+		ImageJr staticImg = new ImageJr( "Walk_005.ppm" );
+		ImageJr copyOftargetImg = targetImg.deep_copy_image_ks();
+		/*
+		 * scan through the img and replace dynamic blocks with the specified
+		 * corresponding block
+		 */
+		MC( targetImg, imgNameT, refImg, imgNameRef, p, 0, new ImageJr(), MC,
+				macroBlkSize );
+
+		// DEBUG
+		System.out.println( "motion compensation[][]:" );
+		for ( int i = 0; i < MC.length; i += macroBlkSize ) {
+			for ( int j = 0; j < MC[0].length; j += macroBlkSize ) {
+				System.out.print( "[ " + MC[i][j][0] + ", " + MC[i][j][1]
+						+ ", " + MC[i][j][2] + " ] " );
+			}
+			System.out.println();
+		}
+
+		int[] thresholds = new int[3];
+		int[] coordinateNeighborStaticBlk = new int[2];
+		thresholds = getThresholds( MC, (float) .9999, (float) .1, (float) .3,
+				macroBlkSize );
+
+		thresholds[0] = 50;// dynamic
+		thresholds[1] = 0;// mv
+		thresholds[2] = 4;// neightbor static blk
+
+		System.out.println( "threshold diff dynamic: " + thresholds[0] );
+		System.out.println( "threshold mv: " + thresholds[1] );
+		System.out.println( "threshold diff static: " + thresholds[2] );
+
+		// boolean isDynamic = false;
+		int avgMV = 0, avgDiff = 0, sumDiff = 0;
+
+		for ( int i = 0; i < MC.length; i += macroBlkSize ) {
+			sumDiff = 0;
+			for ( int j = 0; j < MC[0].length; j += macroBlkSize ) {
+
+				// 1. is this macroblock dynamic?
+
+				// if MV is larger than threshold, then go ahead and replace
+				// the block
+				avgMV = ( Math.abs( MC[i][j][1] ) + Math.abs( MC[i][j][2] ) ) / 2;
+				if ( avgMV > ( thresholds[1] ) + 1
+						|| avgMV < ( thresholds[1] ) - 1 ) {
+
+					// coordinateNeighborStaticBlk =
+					// sequentiallySearchStaticNeighborBlk(
+					// MC, j, i, 2, macroBlkSize,
+					// thresholds[2] );
+
+					// DEBUG
+					System.out.println( "[@x,y=" + j + "," + i
+							+ "] avgMV > thresholds[1]<--" + thresholds[1]
+							+ ": " + avgMV );
+					System.out.println( "replace[" + j + "," + i + "] with ["
+							+ coordinateNeighborStaticBlk[0] + ","
+							+ coordinateNeighborStaticBlk[1] + "]" );
+
+					replaceABlock( copyOftargetImg, staticImg, j, i, j, i,
+							macroBlkSize );
+					continue;
+				} else {
+
+					// get the avg diff of the current macroblock
+					for ( int k0 = 0; k0 < macroBlkSize; k0++ ) {
+						for ( int k1 = 0; k1 < macroBlkSize; k1++ ) {
+							sumDiff += MC[i + k0][j + k1][0];
+						}
+					}
+					avgDiff = sumDiff / ( macroBlkSize * macroBlkSize );
+
+					// DEBUG
+					// System.out.println( "[@x,y=" + j + "," + i
+					// + "] avg difference: " + avgDiff );
+
+					// replace if the block contains moving obj
+					if ( avgDiff > thresholds[0] ) {
+
+						// DEBUG
+						System.out.println( "[@x,y=" + j + "," + i
+								+ "] avgDff > thresholds[0]<--" + thresholds[0]
+								+ ": " + avgDiff );
+
+						// coordinateNeighborStaticBlk =
+						// sequentiallySearchStaticNeighborBlk(
+						// MC, j, i, 2, macroBlkSize,
+						// thresholds[2] );
+
+						replaceABlock( copyOftargetImg, targetImg, j, i, j, i,
+								macroBlkSize );
+					}
+				}
+			}
+		}
+		// copyOftargetImg.display( "replaced image" );
+		// Thread.sleep( 5000 );
+		// get thre
+		// int[][] movingObjCoordinates =
+		// sequentialySearchStaticNeighborBlk( MC, tx0, ty0, p, macroBlkSize,
+		// threshold )
+
+		// scan through macro blks in MC, and find moving objects
 	}
 
 	public void replaceABlock( ImageJr targetImgNew, ImageJr targetImgOld,

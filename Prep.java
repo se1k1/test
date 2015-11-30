@@ -394,9 +394,94 @@ public class Prep {
 		System.out.println( diffs );
 		return findMinDiff( diffs );
 	}
-
 	/** Search for best maching block using sequesntial search and MSD */
 	public ReferenceFrameBlock sequentialSearchMSD( int[][] target,
+			int[][] reference, int tx0, int ty0, int p, int macroBlkSize )
+	{
+		/*
+		 * If the difference between the target block and the candidate block at
+		 * the same position in the past frame is below some threshold then no
+		 * motion
+		 */
+		float threshold = (float) 3;
+		ReferenceFrameBlock sameLoc = new ReferenceFrameBlock( tx0, ty0,
+				meanSquareDiff( target, reference, tx0, ty0, tx0, ty0,
+						macroBlkSize ) );
+		if ( sameLoc.getDiffValue() < threshold ) {
+			// System.out.println( "same block error < threashold" );
+			return sameLoc;
+		}
+
+		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
+
+		for ( int i = 1; i <= p; i++ ) {
+
+			if ( tx0 - i > -1 && tx0 - i < reference[0].length && ty0 - i > -1
+					&& ty0 - i < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0 - i, ty0 - i,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 - i,
+								ty0 - i, macroBlkSize ) ) );
+				// System.out.println( "compare 1" );
+			}
+			if ( ty0 - i > -1 && ty0 - i < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0, ty0 - i,
+						meanSquareDiff( target, reference, tx0, ty0, tx0, ty0
+								- i, macroBlkSize ) ) );
+				// System.out.println( "compare 2" );
+			}
+			if ( tx0 + i > -1 && tx0 + i < reference[0].length && ty0 - i > -1
+					&& ty0 - i < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0 + i, ty0 - i,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 + i,
+								ty0 - i, macroBlkSize ) ) );
+				// System.out.println( "compare 3" );
+			}
+			if ( tx0 - i > -1 && tx0 - i < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0 - i, ty0,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 - i,
+								ty0, macroBlkSize ) ) );
+				// System.out.println( "compare 4" );
+			}
+
+			diffs.add( sameLoc );
+
+			if ( tx0 + i > -1 && tx0 + i < reference[0].length ) {
+				diffs.add( new ReferenceFrameBlock( tx0 + i, ty0,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 + i,
+								ty0, macroBlkSize ) ) );
+				// System.out.println( "compare 6" );
+			}
+			if ( tx0 - i > -1 && tx0 - i < reference[0].length && ty0 + i > -1
+					&& ty0 + i < reference.length ) {
+
+				diffs.add( new ReferenceFrameBlock( tx0 - p, ty0 + i,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 - i,
+								ty0 + i, macroBlkSize ) ) );
+				// System.out.println( "compare 7" );
+			}
+
+			if ( ty0 + i > -1 && ty0 + i < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0, ty0 + i,
+						meanSquareDiff( target, reference, tx0, ty0, tx0, ty0
+								+ i, macroBlkSize ) ) );
+				// System.out.println( "compare 8" );
+			}
+			if ( tx0 + i > -1 && tx0 + i < reference[0].length && ty0 + i > -1
+					&& ty0 + i < reference.length ) {
+				diffs.add( new ReferenceFrameBlock( tx0 + i, ty0 + i,
+						meanSquareDiff( target, reference, tx0, ty0, tx0 + i,
+								ty0 + i, macroBlkSize ) ) );
+				// System.out.println( "compare 9" );
+			}
+		}
+		// debug
+		// System.out.print( "[@x,y=" + tx0 + "," + ty0 + "]:" );
+		// System.out.println( diffs );
+		return findMinDiff( diffs );
+	}
+
+	/** Search for best maching block using sequesntial search and MSD */
+	public ReferenceFrameBlock sequentialSearchMSD_wrong_version( int[][] target,
 			int[][] reference, int tx0, int ty0, int p, int macroBlkSize )
 	{
 		/*
