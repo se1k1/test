@@ -6,12 +6,11 @@ import java.util.Random;
 import org.junit.Test;
 
 public class hw4_task2_test {
-	
+
 	//@Test
 	public void test_task2_2() throws InterruptedException, IOException
 	{
 		Task2 t2 = new Task2();
-		Prep pp = new Prep();
 		String imgNameT = "Walk_060.ppm";
 		String imgNameRef = "Walk_057.ppm";
 		// String targetName = "Walk_022.ppm";
@@ -19,8 +18,7 @@ public class hw4_task2_test {
 
 		ImageJr targetImg = new ImageJr( imgNameT );
 		ImageJr referenceImg = new ImageJr( imgNameRef );
-		ImageJr residualImg = new ImageJr();
-		int[] paddedSize = new int[2], thresholds = new int[3];
+		int[] paddedSize = new int[2];
 		int macroBlkSize = 16, p = 12;
 		targetImg.paddedSize( macroBlkSize, paddedSize );
 		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];
@@ -30,19 +28,19 @@ public class hw4_task2_test {
 
 		t2.removeMovingObj02( targetImg, referenceImg, imgNameT, imgNameRef,
 				MC, macroBlkSize, p );
-		//pp.print3DArray( MC );
-		System.out.println( "motion compensation[][](outside the MC() method):" );
+		// pp.print3DArray( MC );
+		System.out
+				.println( "motion compensation[][](outside the MC() method):" );
 		for ( int i = 0; i < MC.length; i += macroBlkSize ) {
 			for ( int j = 0; j < MC[0].length; j += macroBlkSize ) {
-				System.out.print( "[ " + MC[i][j][0] + ", "
-						+ MC[i][j][1] + ", "
-						+ MC[i][j][2] + " ("+j+","+i+")] " );
+				System.out.print( "[ " + MC[i][j][0] + ", " + MC[i][j][1]
+						+ ", " + MC[i][j][2] + " (" + j + "," + i + ")] " );
 			}
 			System.out.println();
 		}
 
 	}
-	
+
 	@Test
 	public void test_task2_1() throws InterruptedException, IOException
 	{
@@ -66,13 +64,13 @@ public class hw4_task2_test {
 
 		t2.removeMovingObj01( targetImg, referenceImg, imgNameT, imgNameRef,
 				MC, macroBlkSize, p );
-		//pp.print3DArray( MC );
-		System.out.println( "motion compensation[][](outside the MC() method):" );
+		// pp.print3DArray( MC );
+		System.out
+				.println( "motion compensation[][](outside the MC() method):" );
 		for ( int i = 0; i < MC.length; i += macroBlkSize ) {
 			for ( int j = 0; j < MC[0].length; j += macroBlkSize ) {
-				System.out.print( "[ " + MC[i][j][0] + ", "
-						+ MC[i][j][1] + ", "
-						+ MC[i][j][2] + " ("+j+","+i+")] " );
+				System.out.print( "[ " + MC[i][j][0] + ", " + MC[i][j][1]
+						+ ", " + MC[i][j][2] + " (" + j + "," + i + ")] " );
 			}
 			System.out.println();
 		}

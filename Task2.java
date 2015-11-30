@@ -158,9 +158,10 @@ public class Task2 extends Prep {
 				: ty0 + p );
 
 		int[] coordinate = new int[2];
-		for ( int i = startY; i < stopY; i++ ) {
-			for ( int j = startX; j < stopX; j++ ) {
-
+		// for ( int i = startY; i < stopY; i++ ) {
+		// for ( int j = startX; j < stopX; j++ ) {
+		for ( int i = startY; i < stopY; i += macroBlkSize ) {
+			for ( int j = startX; j < stopX; j += macroBlkSize ) {
 				if ( /*
 					 * i > -1 && i < motionCompensation.length && j > -1 && j <
 					 * motionCompensation[0].length &&
@@ -352,10 +353,6 @@ public class Task2 extends Prep {
 					}
 					avgDiff = sumDiff / ( macroBlkSize * macroBlkSize );
 
-					// DEBUG
-					// System.out.println( "[@x,y=" + j + "," + i
-					// + "] avg difference: " + avgDiff );
-
 					// replace if the block contains moving obj
 					if ( avgDiff > thresholds[0] ) {
 
@@ -440,14 +437,7 @@ public class Task2 extends Prep {
 					// MC, j, i, 2, macroBlkSize,
 					// thresholds[2] );
 
-					// DEBUG
-					System.out.println( "[@x,y=" + j + "," + i
-							+ "] avgMV > thresholds[1]<--" + thresholds[1]
-							+ ": " + avgMV );
-					System.out.println( "replace[" + j + "," + i + "] with ["
-							+ coordinateNeighborStaticBlk[0] + ","
-							+ coordinateNeighborStaticBlk[1] + "]" );
-
+	
 					replaceABlock( copyOftargetImg, staticImg, j, i, j, i,
 							macroBlkSize );
 					continue;
@@ -460,10 +450,6 @@ public class Task2 extends Prep {
 						}
 					}
 					avgDiff = sumDiff / ( macroBlkSize * macroBlkSize );
-
-					// DEBUG
-					// System.out.println( "[@x,y=" + j + "," + i
-					// + "] avg difference: " + avgDiff );
 
 					// replace if the block contains moving obj
 					if ( avgDiff > thresholds[0] ) {
@@ -484,14 +470,6 @@ public class Task2 extends Prep {
 				}
 			}
 		}
-		// copyOftargetImg.display( "replaced image" );
-		// Thread.sleep( 5000 );
-		// get thre
-		// int[][] movingObjCoordinates =
-		// sequentialySearchStaticNeighborBlk( MC, tx0, ty0, p, macroBlkSize,
-		// threshold )
-
-		// scan through macro blks in MC, and find moving objects
 	}
 
 	public void replaceABlock( ImageJr targetImgNew, ImageJr targetImgOld,

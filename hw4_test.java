@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class hw4_test {
 
-	//@Test
+	@Test
 	public void test_mc_with_logSearch() throws InterruptedException,
 			IOException
 	{
@@ -34,7 +34,7 @@ public class hw4_test {
 
 		pp.MC_w_logSearch( t22, targetName, r20, refName, 1, 0, residual,
 				motionCompensation, macroBlkSize );
-		pp.print3DArray( motionCompensation );
+		//pp.print3DArray( motionCompensation );
 		
 
 	}
@@ -57,15 +57,15 @@ public class hw4_test {
 		t22.paddedSize( macroBlkSize, paddedSize );
 		System.out.println( "width:" + paddedSize[0] + "\t" + paddedSize[1] );
 		int[][][] motionCompensation = new int[paddedSize[1]][paddedSize[0]][3];
-		// ij.display_ks( "walk 57" );
-		// Thread.sleep( 3000 );
+//		 ij.display_ks( "walk 57" );
+//		 Thread.sleep( 3000 );
 
 		pp.MC( t22, targetName, r20, refName, 12, 0, residual,
 				motionCompensation, macroBlkSize );
 
 	}
 
-	// @Test
+	//@Test
 	public void test_sequentialSearchMSD_edges()
 	{
 		/*
@@ -74,15 +74,15 @@ public class hw4_test {
 		 * pixel values - get the best matcing ref block and printout min, x, y
 		 */
 		Prep pr = new Prep();
-		int tx0 = 2, ty0 = 2, p = 1;
+		int tx0 = 2, ty0 = 2, p = 2;
 		int macroBlkSize = 2;
 
 		int[][] target =
 		{
 		{ 1, 2, 3, 4 },
 		{ 5, 6, 7, 8 },
-		{ 9, 10, 11, 12 },
-		{ 13, 14, 15, 16 } };
+		{ 9, 10, 2, 3 },
+		{ 13, 14, 6, 10 } };
 
 		int[][] ref =
 		{
