@@ -1,3 +1,8 @@
+import java.io.IOException;
+import java.util.Arrays;
+
+import Similarity.Similarity;
+
 public class Task3 extends Prep {
 
 	public Task3()
@@ -6,35 +11,64 @@ public class Task3 extends Prep {
 	}
 
 	/**
-	 * return value: top3[row][0]=frame index, top3[row][1]=similarity
+	 * return value: top3[row][0]=frame index, top3[row][1]=simPercentage
 	 * percentage
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	public int[][] getTop3SimilarFrames()
+	public Similarity[] getTop3SimilarFrames( int p, int macroBlkSize,
+			int targetNum ) throws InterruptedException, IOException
 	{
-		int[][] sims = new int[200][4];
-		radixSortSims( sims );
 
-		int[][] top3 = new int[3][2];
-		return top3;
-	}
+		Similarity[] simlarities = new Similarity[200];
+		int[][][] MC = null;
+		String imgNameT = "", imgNameRef = "";
+		ImageJr targetImg, referenceImg, residualImg = null;
 
-	public float computeSimPercentage( int[] sim )
-	{
-		return 0;
-	}
+		if ( targetNum < 10 ) {
+			imgNameT = "Walk_00" + targetNum + ".ppm";
+		} else if ( targetNum < 100 ) {
+			imgNameT = "Walk_0" + targetNum + ".ppm";
+		} else {
+			imgNameT = "Walk_" + targetNum + ".ppm";
+		}
 
-	public int[] radixSortSims( int[][] sims )
-	{
-		int[][] copyOfSims = deepCopy2dArray( sims );
-		// run the radix sort
-		return null;
+		// loop through all IDB to get 3 most similar frames
+		for ( int i = 0; i < simlarities.length; i++ ) {
+			if ( i == targetNum ) {
+				continue;
+			}
+
+			if ( i < 10 ) {
+				imgNameRef = "Walk_00" + i + ".ppm";
+			} else if ( i < 100 ) {
+				imgNameRef = "Walk_0" + i + ".ppm";
+			} else {
+				imgNameRef = "Walk_" + i + ".ppm";
+			}
+
+			targetImg = new ImageJr( imgNameT );
+			referenceImg = new ImageJr( imgNameRef );
+
+			MC( targetImg, imgNameT, referenceImg, imgNameRef, p, 0,
+					residualImg, MC, macroBlkSize );
+			simlarities[i] = measureSimilarity( MC, targetNum, i );
+
+		}
+
+		Arrays.sort( simlarities );
+		Similarity[] simTop3 =
+		{ simlarities[0], simlarities[1], simlarities[2] };
+		return simTop3;
 	}
 
 	/**
 	 * sim[0]=mv, sim[1]=diff, sim[2]=distFrm, sim[3]=target frame index ,
 	 * sim[4]=reference frame index
 	 */
-	public int[] measureSimilarity( int[][][] MC, int frameIdxT, int frameIdxR )
+	public Similarity measureSimilarity( int[][][] MC, int frameIdxT,
+			int frameIdxR )
 	{
 		/*
 		 * 1st attempt: - MV similarity value = abs(avg(x, y)). The smaller the
@@ -56,13 +90,17 @@ public class Task3 extends Prep {
 		}
 
 		/** sim[0]=mv, sim[1]=diff, sim[2]=distFrm, sim[3]=reference frame index */
-		int[] sim = new int[4];
-		sim[0] = sumMV;
-		sim[1] = sumDiff;
-		sim[2] = Math.abs( frameIdxT - frameIdxR );
-		sim[3] = frameIdxR;
+		// int[] sim = new int[4];
+		// sim[0] = sumMV;
+		// sim[1] = sumDiff;
+		// sim[2] = Math.abs( frameIdxT - frameIdxR );
+		// sim[3] = frameIdxR;
+
+		Similarity sim = new Similarity( sumMV, sumDiff, frameIdxT, frameIdxR );
 
 		return sim;
+		// return (float) ( sim[0] * .5 + sim[1] * .4 + sim[2] * .1 );
+
 	}
 
 	public int[][] deepCopy2dArray( int[][] oldArray )

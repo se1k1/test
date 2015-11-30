@@ -39,9 +39,22 @@ public class Task2 extends Prep {
 		System.out
 				.print( "Please choose  a frame number between 19 and 179  [19-179]:" );
 		int n = sc.nextInt();
+		String targetName = "", refName = "";
+		if ( n < 10 ) {
+			targetName = "Walk_00" + n + ".ppm";
+		} else if ( n < 100 ) {
+			targetName = "Walk_0" + n + ".ppm";
+		} else {
+			targetName = "Walk_" + n + ".ppm";
+		}
 
-		String targetName = "Walk_0" + n + ".ppm";
-		String refName = "Walk_0" + ( n - 2 ) + ".ppm";
+		if ( n - 2 < 10 ) {
+			refName = "Walk_00" + ( n - 2 ) + ".ppm";
+		} else if ( n - 2 < 100 ) {
+			refName = "Walk_0" + ( n - 2 ) + ".ppm";
+		} else {
+			refName = "Walk_" + ( n - 2 ) + ".ppm";
+		}
 
 		targetImg = new ImageJr( targetName );
 		referenceImg = new ImageJr( refName );
@@ -437,7 +450,6 @@ public class Task2 extends Prep {
 					// MC, j, i, 2, macroBlkSize,
 					// thresholds[2] );
 
-	
 					replaceABlock( copyOftargetImg, staticImg, j, i, j, i,
 							macroBlkSize );
 					continue;
