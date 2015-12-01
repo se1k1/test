@@ -934,7 +934,7 @@ mappedError.write2PPM( "log_search_out.ppm" );
 		int value = 0;
 		for ( int i = 0; i < residual.getH(); i++ ) {
 			for ( int j = 0; j < residual.getW(); j++ ) {
-				value = residual.getR( j, i ) > threshold ? 255 : 50;
+				value = residual.getR( j, i ) > threshold ? 255 : 0;
 				mappedResidual.setPixel( j, i, value );
 			}
 		}

@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class hw4_test {
 
-	//@Test
+	// @Test
 	public void test_mc_with_logSearch() throws InterruptedException,
 			IOException
 	{
@@ -34,22 +34,21 @@ public class hw4_test {
 
 		pp.MC_w_logSearch( t22, targetName, r20, refName, 12, 0, residual,
 				motionCompensation, macroBlkSize );
-		//pp.print3DArray( motionCompensation );
+		// pp.print3DArray( motionCompensation );
 		// DEBUG
-				System.out.println( "motion compensation[][]:" );
-				for ( int i = 0; i < motionCompensation.length; i += macroBlkSize ) {
-					for ( int j = 0; j < motionCompensation[0].length; j += macroBlkSize ) {
-						System.out.print( "[ " + motionCompensation[i][j][0] + ", "
-								+ motionCompensation[i][j][1] + ", "
-								+ motionCompensation[i][j][2] + " ] " );
-					}
-					System.out.println();
-				}
-		
+		System.out.println( "motion compensation[][]:" );
+		for ( int i = 0; i < motionCompensation.length; i += macroBlkSize ) {
+			for ( int j = 0; j < motionCompensation[0].length; j += macroBlkSize ) {
+				System.out.print( "[ " + motionCompensation[i][j][0] + ", "
+						+ motionCompensation[i][j][1] + ", "
+						+ motionCompensation[i][j][2] + " ] " );
+			}
+			System.out.println();
+		}
 
 	}
 
-	@Test
+	// @Test
 	public void test_mc() throws InterruptedException, IOException
 	{
 		// int x = 70, y = 70;
@@ -67,15 +66,15 @@ public class hw4_test {
 		t22.paddedSize( macroBlkSize, paddedSize );
 		System.out.println( "width:" + paddedSize[0] + "\t" + paddedSize[1] );
 		int[][][] motionCompensation = new int[paddedSize[1]][paddedSize[0]][3];
-//		 ij.display_ks( "walk 57" );
-//		 Thread.sleep( 3000 );
+		// ij.display_ks( "walk 57" );
+		// Thread.sleep( 3000 );
 
 		pp.MC( t22, targetName, r20, refName, 12, 0, residual,
 				motionCompensation, macroBlkSize );
 
 	}
 
-	//@Test
+	// @Test
 	public void test_sequentialSearchMSD_edges()
 	{
 		/*
