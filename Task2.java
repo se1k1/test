@@ -181,9 +181,9 @@ public class Task2 extends Prep {
 					 */motionCompensation[i][j][1] == 0
 						&& motionCompensation[i][j][2] == 0
 						&& motionCompensation[i][j][0] <= threshold ) {
-					System.out.println( "conditions met @ y,x=i,j=" + i + ","
-							+ j );
-					System.out.println( "threshold=" + threshold );
+//					System.out.println( "conditions met @ y,x=i,j=" + i + ","
+//							+ j );
+//					System.out.println( "threshold=" + threshold );
 					coordinate[0] = j;// x coord
 					coordinate[1] = i;// y coord
 					return coordinate;

@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class hw4_test {
 
-	@Test
+	//@Test
 	public void test_mc_with_logSearch() throws InterruptedException,
 			IOException
 	{
@@ -32,20 +32,30 @@ public class hw4_test {
 		// ij.display_ks( "walk 57" );
 		// Thread.sleep( 3000 );
 
-		pp.MC_w_logSearch( t22, targetName, r20, refName, 1, 0, residual,
+		pp.MC_w_logSearch( t22, targetName, r20, refName, 12, 0, residual,
 				motionCompensation, macroBlkSize );
 		//pp.print3DArray( motionCompensation );
+		// DEBUG
+				System.out.println( "motion compensation[][]:" );
+				for ( int i = 0; i < motionCompensation.length; i += macroBlkSize ) {
+					for ( int j = 0; j < motionCompensation[0].length; j += macroBlkSize ) {
+						System.out.print( "[ " + motionCompensation[i][j][0] + ", "
+								+ motionCompensation[i][j][1] + ", "
+								+ motionCompensation[i][j][2] + " ] " );
+					}
+					System.out.println();
+				}
 		
 
 	}
 
-	// @Test
+	@Test
 	public void test_mc() throws InterruptedException, IOException
 	{
 		// int x = 70, y = 70;
 		Prep pp = new Prep();
 		String targetName = "Walk_060.ppm";
-		String refName = "Walk_057.ppm";
+		String refName = "Walk_058.ppm";
 		// String targetName = "Walk_022.ppm";
 		// String refName = "Walk_022.ppm";
 

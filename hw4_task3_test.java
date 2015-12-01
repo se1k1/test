@@ -1,13 +1,14 @@
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.util.Random;
 
 import org.junit.Test;
 
 public class hw4_task3_test {
 
-	@Test
-	public void test_getTop3()
+	// @Test
+	public void test_getTop3() throws InterruptedException, IOException
 	{
 		Task3 t3 = new Task3();
 		Prep pp = new Prep();
@@ -15,6 +16,54 @@ public class hw4_task3_test {
 
 		Similarity[] sims = new Similarity[3];
 		sims = t3.getTop3SimilarFrames( 4, 16, targetNum );
+		for ( Similarity similarity : sims ) {
+			System.out.println( sims.toString() );
+		}
+	}
+
+	@Test
+	public void test_getTop3_sml() throws InterruptedException, IOException
+	{
+		Task3 t3 = new Task3();
+		Prep pp = new Prep();
+		int targetNum = 59;
+
+		Similarity[] sims = t3.getTop3SimilarFrames_sml( 4, 16, targetNum );
+		for ( Similarity similarity : sims ) {
+			System.out.println( similarity.toString() );
+		}
+		
+		
+	}
+
+	// @Test
+	public void test_measureSimilarities() throws InterruptedException,
+			IOException
+	{
+		Prep pp = new Prep();
+		String imgNameT = "Walk_060.ppm";
+		String imgNameRef = "Walk_057.ppm";
+		// String targetName = "Walk_022.ppm";
+		// String refName = "Walk_022.ppm";
+		int macroBlkSize = 16;
+		ImageJr targetImg = new ImageJr( imgNameT );
+		ImageJr referenceImg = new ImageJr( imgNameRef );
+		int[] paddedSize = new int[2];
+		targetImg.paddedSize( macroBlkSize, paddedSize );
+		ImageJr residual = new ImageJr( paddedSize[0], paddedSize[1] );
+		int[][][] motionCompensation = new int[paddedSize[1]][paddedSize[0]][3];
+
+		Task3 t3 = new Task3();
+		int targetNum = 59, frameIdxR = 10, p = 4;
+
+		Similarity[] sims = new Similarity[3];
+		pp.MC( targetImg, imgNameT, referenceImg, imgNameRef, p, 0, residual,
+				motionCompensation, macroBlkSize );
+		System.out.println( t3.measureSimilarity( motionCompensation, p,
+				frameIdxR ) );
+		// for ( Similarity similarity : sims ) {
+		// similarity.toString() );
+		// }
 	}
 
 	// @Test

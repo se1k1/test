@@ -1,13 +1,81 @@
 import java.io.IOException;
 import java.util.Arrays;
 
-import Similarity.Similarity;
-
 public class Task3 extends Prep {
 
 	public Task3()
 	{
 		// TODO Auto-generated constructor stub
+	}
+
+	public Similarity[] getTop3SimilarFrames_sml( int p, int macroBlkSize,
+			int targetNum ) throws InterruptedException, IOException
+	{
+
+		Similarity[] similarities = new Similarity[2];
+
+		String imgNameT = "", imgNameRef = "";
+		ImageJr targetImg, referenceImg, residualImg = null;
+
+		if ( targetNum < 10 ) {
+			imgNameT = "Walk_00" + targetNum + ".ppm";
+		} else if ( targetNum < 100 ) {
+			imgNameT = "Walk_0" + targetNum + ".ppm";
+		} else {
+			imgNameT = "Walk_" + targetNum + ".ppm";
+		}
+		targetImg = new ImageJr( imgNameT );
+		int[] paddedSize = new int[3];
+		targetImg.paddedSize( macroBlkSize, paddedSize );
+		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];
+		// loop through all IDB to get 3 most similar frames
+		for ( int i = 1; i <= similarities.length; i++ ) {
+			if ( i == targetNum ) {
+				continue;
+			}
+
+			if ( i < 10 ) {
+				imgNameRef = "Walk_00" + i + ".ppm";
+			} else if ( i < 100 ) {
+				imgNameRef = "Walk_0" + i + ".ppm";
+			} else {
+				imgNameRef = "Walk_" + i + ".ppm";
+			}
+
+			referenceImg = new ImageJr( imgNameRef );
+
+			MC( targetImg, imgNameT, referenceImg, imgNameRef, p, 0,
+					residualImg, MC, macroBlkSize );
+			System.out.println( "i=" + i + ": "
+					+ measureSimilarity( MC, targetNum, i ) );
+			similarities[i - 1] = measureSimilarity( MC, targetNum, i );
+			System.out.println( similarities[i - 1] );
+		}
+
+		// DEBUG
+		// System.out.println( "motion compensation[][]:" );
+		// for ( int i = 0; i < MC.length; i += macroBlkSize ) {
+		// for ( int j = 0; j < MC[0].length; j += macroBlkSize ) {
+		// System.out.print( "[ " + MC[i][j][0] + ", " + MC[i][j][1]
+		// + ", " + MC[i][j][2] + " ] " );
+		// }
+		// System.out.println();
+		// }
+
+		Arrays.sort( similarities );
+
+		for ( Similarity s : similarities ) {
+			System.out.println( s );
+		}
+System.out.println(similarities.length);
+		if ( similarities.length > 2 ) {
+			System.out.println("similarities.length > 2");
+			Similarity[] simTop3 =
+			{ similarities[0], similarities[1], similarities[2] };
+			return simTop3;
+		} else
+			return null;
+
 	}
 
 	/**
@@ -22,7 +90,7 @@ public class Task3 extends Prep {
 	{
 
 		Similarity[] simlarities = new Similarity[200];
-		int[][][] MC = null;
+
 		String imgNameT = "", imgNameRef = "";
 		ImageJr targetImg, referenceImg, residualImg = null;
 
@@ -33,9 +101,12 @@ public class Task3 extends Prep {
 		} else {
 			imgNameT = "Walk_" + targetNum + ".ppm";
 		}
-
+		targetImg = new ImageJr( imgNameT );
+		int[] paddedSize = new int[2];
+		targetImg.paddedSize( macroBlkSize, paddedSize );
+		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];
 		// loop through all IDB to get 3 most similar frames
-		for ( int i = 0; i < simlarities.length; i++ ) {
+		for ( int i = 1; i < simlarities.length; i++ ) {
 			if ( i == targetNum ) {
 				continue;
 			}
@@ -48,7 +119,6 @@ public class Task3 extends Prep {
 				imgNameRef = "Walk_" + i + ".ppm";
 			}
 
-			targetImg = new ImageJr( imgNameT );
 			referenceImg = new ImageJr( imgNameRef );
 
 			MC( targetImg, imgNameT, referenceImg, imgNameRef, p, 0,

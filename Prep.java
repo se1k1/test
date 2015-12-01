@@ -64,8 +64,8 @@ public class Prep {
 				// DEBUG
 				if ( x > debugX && y > debugY && x < debugX + 10
 						&& y < debugY + 10 ) {
-					System.out.println( "\n[@x,y=" + x + "," + y + "]:\t"
-							+ bestMatch.toString() );
+//					System.out.println( "\n[@x,y=" + x + "," + y + "]:\t"
+//							+ bestMatch.toString() );
 				}
 
 				// store motion vector x
@@ -401,7 +401,7 @@ mappedError.write2PPM( "log_search_out.ppm" );
 	{
 
 		// return the same block if diff < threshold
-		float threshold = (float) 3;
+		float threshold = (float) 43;
 		ReferenceFrameBlock sameLoc = new ReferenceFrameBlock( tx0, ty0,
 				meanSquareDiff( target, reference, tx0, ty0, tx0, ty0,
 						macroBlkSize ) );
@@ -422,8 +422,8 @@ mappedError.write2PPM( "log_search_out.ppm" );
 			for ( int j = startX; j < stopX; j++ ) {
 
 				if ( !( i == ty0 && j == ty0 ) ) {
-					System.out.println( "conditions met @ y,x=i,j=" + i + ","
-							+ j );
+//					System.out.println( "conditions met @ y,x=i,j=" + i + ","
+//							+ j );
 
 					diffs.add( new ReferenceFrameBlock( j, i, meanSquareDiff(
 							target, reference, tx0, ty0, j, i, macroBlkSize ) ) );
@@ -433,7 +433,7 @@ mappedError.write2PPM( "log_search_out.ppm" );
 
 		// debug
 		// System.out.print( "[@x,y=" + tx0 + "," + ty0 + "]:" );
-		 System.out.println( diffs );
+	//	 System.out.println( diffs );
 		return findMinDiff( diffs );
 	}
 
