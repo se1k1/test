@@ -201,7 +201,7 @@ public class Task3 extends Prep {
 		File directory = new File( directoryName );
 		File[] imageData = directory.listFiles();
 
-		Similarity[] similarities = new Similarity[10];
+		Similarity[] similarities = new Similarity[200];
 		String imgNameRef = "";
 		ImageJr targetImg, referenceImg, residualImg = null;
 		targetImg = new ImageJr( directoryName + "\\" + imgNameT );
@@ -235,12 +235,12 @@ public class Task3 extends Prep {
 
 		System.out.println( "Input image name: " + imgNameT );
 		System.out.println( "Half-pixel accuracy (optional): " + "Yes" );
-		System.out.print( "Top 3 similar images in the DB:" );
+		System.out.print( "Top 6 similar images in the DB:" );
 
 		Similarity tempSim;
 		double tempSimPercentage = 0;
 
-		for ( int i = 0; i < 3; i++ ) {
+		for ( int i = 0; i < 6; i++ ) {
 			tempSim = similarities[i];
 			System.out.print( "\n"
 					+ imageData[tempSim.getReferenceFrmIdx()].getName()
@@ -255,7 +255,7 @@ public class Task3 extends Prep {
 	/**
 	 * DEBUG --- to be deleted
 	 */
-	public void getTop3_test( int p, int macroBlkSize )
+	public void getTop6_test( int p, int macroBlkSize )
 			throws InterruptedException, IOException
 	{
 
@@ -272,9 +272,9 @@ public class Task3 extends Prep {
 		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];
 		int targetNum = getIndexOfTargetImage( imgNameT, imageData );
 
-		// loop through all IDB to get 3 most similar frames
+		// loop through all IDB to get 6 most similar frames
 		for ( int i = 0; i < imageData.length; i++ ) {
-						if ( i == targetNum ) {
+			if ( i == targetNum ) {
 				similarities[i] = new Similarity( Integer.MAX_VALUE,
 						Integer.MAX_VALUE, i, i );
 				continue;
@@ -296,12 +296,12 @@ public class Task3 extends Prep {
 
 		System.out.println( "Input image name: " + imgNameT );
 		System.out.println( "Half-pixel accuracy (optional): " + "Yes" );
-		System.out.print( "Top 3 similar images in the DB:" );
+		System.out.print( "Top 6 similar images in the DB:" );
 
 		Similarity tempSim;
 		double tempSimPercentage = 0;
 
-		for ( int i = 0; i < 3; i++ ) {
+		for ( int i = 0; i < 6; i++ ) {
 			tempSim = similarities[i];
 			System.out.print( "\n"
 					+ imageData[tempSim.getReferenceFrmIdx()].getName()
@@ -317,24 +317,27 @@ public class Task3 extends Prep {
 	public double calculateDiffPercentage01( Similarity[] similarities, int idxR )
 	{
 		double closest, furthest, curr;
+		int idxCurr = getIndexOfTargetImage( idxR, similarities );
+
 
 		// the most similar
-		closest = ( similarities[0].getMv()+1 ) * similarities[0].getDiff();
-		
-		// the least similar
-		furthest = ( similarities[similarities.length - 2].getMv()+1 )
-				* similarities[similarities.length - 2].getDiff();
-		
-		// current value
-		curr = (similarities[idxR].getMv()+1) * similarities[idxR].getDiff();
-		System.out.println("CURR: mv=" + similarities[idxR].getMv()+"\tdiff="+ similarities[idxR].getDiff());
-		
-		System.out.println( "min, max, curr[Idx:"+idxR+"]=" + closest + ", " + furthest + ", " + curr );
-		System.out.println( "curr-min=" + ( curr - closest ) + ", max-min="
-				+ ( furthest - closest ) );
-		System.out.println( "inside calculateDiffPercentage01\tidxR=" + idxR );
+		closest = ( similarities[0].getMv() + 1 ) * similarities[0].getDiff();
 
-		return ( curr - closest ) / ( furthest - closest );
+		// the least similar
+		furthest = ( similarities[similarities.length - 2].getMv() + 1 )
+				* similarities[similarities.length - 2].getDiff();
+
+		// current value
+
+		curr = ( similarities[idxCurr].getMv() + 1 )
+				* similarities[idxCurr].getDiff();
+		curr = ( similarities[0].getReferenceFrmIdx() == curr ) ? closest
+				: curr;
+		curr = ( similarities[similarities.length - 2].getReferenceFrmIdx() == curr ) ? furthest
+				: curr;
+		curr = Math.abs( curr );
+
+		return 1-(( curr - closest ) / ( furthest - closest ));
 	}
 
 	// absolute measure
@@ -349,6 +352,17 @@ public class Task3 extends Prep {
 	{
 		for ( int i = 0; i < imgDirectory.length; i++ ) {
 			if ( imgDirectory[i].getName().equals( imgNameT ) ) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	public int getIndexOfTargetImage( int referenceFrmIdx,
+			Similarity[] imgDirectory )
+	{
+		for ( int i = 0; i < imgDirectory.length; i++ ) {
+			if ( imgDirectory[i].getReferenceFrmIdx() == referenceFrmIdx ) {
 				return i;
 			}
 		}

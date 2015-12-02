@@ -1,5 +1,7 @@
 public class ReferenceFrameBlock {
 	private int xTopLeft = 0, yTopLeft = 0;
+	//private float xTopLeft = 0, yTopLeft = 0;
+
 	private float diffValue = 0;
 	static int idSeed = 0;
 	private int refFrmId = 0;
@@ -24,7 +26,7 @@ public class ReferenceFrameBlock {
 		refFrmId = idSeed++;
 	}
 
-	public int getxTopLeft()
+	public float getxTopLeft()
 	{
 		return xTopLeft;
 	}
@@ -34,7 +36,7 @@ public class ReferenceFrameBlock {
 		this.xTopLeft = xTopLeft;
 	}
 
-	public int getyTopLeft()
+	public float getyTopLeft()
 	{
 		return yTopLeft;
 	}

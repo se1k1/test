@@ -41,8 +41,8 @@ public class hw4_task3_test {
 	public void test_getTop3() throws InterruptedException, IOException
 	{
 		Task3 t3 = new Task3();
-//		t3.getTop3SimilarFrames( 4, 16 );
-		t3.getTop3_test(  4, 16 );
+	t3.getTop3SimilarFrames( 4, 16 );
+//		t3.getTop6_test(  4, 16 );
 
 		}
 

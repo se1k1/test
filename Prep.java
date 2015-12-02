@@ -50,7 +50,56 @@ public class Prep {
 				// find predicted block
 				bestMatch = sequentialSearchMSD( targetFrm, referenceFrm, x, y,
 						p, macroBlkSize );
-				
+
+				// store motion vector x
+				motionCompensation[y][x][1] = x - bestMatch.getxTopLeft();
+				motionCompensation[y][x][2] = y - bestMatch.getyTopLeft();
+
+				// store each error_pixel_value
+				for ( int i = 0; i < macroBlkSize; i++ ) {
+					for ( int j = 0; j < macroBlkSize; j++ ) {
+
+						if ( ( bestMatch.getxTopLeft() + j ) < referenceFrm[0].length
+								&& ( bestMatch.getyTopLeft() + i ) < referenceFrm.length
+								&& ( x + j ) < referenceFrm[0].length
+								&& ( y + i ) < referenceFrm.length ) {
+
+							motionCompensation[y + i][x + j][0] = Math
+									.abs( targetFrm[y + i][x + j]
+											- referenceFrm[bestMatch
+													.getyTopLeft() + i][bestMatch
+													.getxTopLeft() + j] );
+
+							errorImg.setPixel( x + j, y + i,
+									motionCompensation[y + i][x + j][0] );
+
+						}
+					}
+				}
+			}// loop col ends
+		}// loop row ends
+	}
+
+	public void MC_w_half_pixel_accuracy( ImageJr targetImg, String imgNameT,
+			ImageJr referenceImg, String imgNameRef, int p,
+			int matchingCriteria, ImageJr residualImg,
+			int[][][] motionCompensation, int macroBlkSize )
+			throws InterruptedException, IOException
+	{
+		ImageJr padTarget = targetImg.padImage( macroBlkSize );
+		ImageJr padRef = referenceImg.padImage( macroBlkSize );
+		ImageJr errorImg = new ImageJr( padTarget.getW(), padTarget.getH() );
+		int[][] targetFrm = padTarget.imageJrTo2DArray();
+		int[][] referenceFrm = padRef.imageJrTo2DArray();
+		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
+
+		for ( int y = 0; y < targetFrm.length; y += macroBlkSize ) {
+			for ( int x = 0; x < targetFrm[y].length; x += macroBlkSize ) {
+
+				// find predicted block
+				bestMatch = sequentialSearchMSD( targetFrm, referenceFrm, x, y,
+						p, macroBlkSize );
+
 				// store motion vector x
 				motionCompensation[y][x][1] = x - bestMatch.getxTopLeft();
 				motionCompensation[y][x][2] = y - bestMatch.getyTopLeft();
@@ -471,6 +520,67 @@ public class Prep {
 				}
 			}
 		}
+
+		// debug
+		// System.out.print( "[@x,y=" + tx0 + "," + ty0 + "]:" );
+		// System.out.println( diffs );
+		return findMinDiff( diffs );
+	}
+
+	/** half pixel accuracy MSD */
+	public ReferenceFrameBlock sequentialSearchMSD_w_halfPixel_accuracy( int[][] target,
+			int[][] reference, int tx0, int ty0, int p, int macroBlkSize )
+	{
+
+		// return the same block if diff < threshold
+		float threshold = (float) 43;
+		ReferenceFrameBlock sameLoc = new ReferenceFrameBlock( tx0, ty0,
+				meanSquareDiff( target, reference, tx0, ty0, tx0, ty0,
+						macroBlkSize ) );
+
+		if ( sameLoc.getDiffValue() <= threshold ) {
+			// System.out.println( "same block error < threashold" );
+			return sameLoc;
+		}
+
+		int startX = ( tx0 - p < 0 ? 0 : tx0 - p ), startY = ( ty0 - p < 0 ? 0
+				: ty0 - p );
+		int stopX = ( tx0 + p > target[0].length ? target[0].length : tx0 + p ), stopY = ( ty0
+				+ p > target.length ? target[0].length : ty0 + p );
+
+		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
+		// ------ original ----------------
+//		for ( int i = startY; i < stopY; i++ ) {
+//			for ( int j = startX; j < stopX; j++ ) {
+//
+//				if ( !( i == ty0 && j == ty0 ) ) {
+//					
+//					diffs.add( new ReferenceFrameBlock( j, i, meanSquareDiff(
+//							target, reference, tx0, ty0, j, i, macroBlkSize ) ) );
+//				}
+//			}
+//		}
+		ReferenceFrameBlock prev, next, between;
+		
+		// half pixel accuracy
+		for ( int i = startY; i < stopY; i+=2 ) {
+			for ( int j = startX; j < stopX; j+=2 ) {
+
+				if ( !( i == ty0 && j == ty0 ) ) {
+					prev=new ReferenceFrameBlock( j, i, meanSquareDiff(
+							target, reference, tx0, ty0, j, i, macroBlkSize ));
+					diffs.add(  );
+				}
+				if ( !( i == ty0 && j == ty0 ) ) {
+					
+					next= new ReferenceFrameBlock( j+1, i+1, meanSquareDiff(
+							target, reference, tx0, ty0, j+1, i+1, macroBlkSize ) ) ;
+				}
+				
+				
+			}
+		}
+
 
 		// debug
 		// System.out.print( "[@x,y=" + tx0 + "," + ty0 + "]:" );
