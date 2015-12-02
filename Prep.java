@@ -20,14 +20,6 @@ public class Prep {
 	static final int SEQUENTIAL_SEARCH = 10;
 	static final int LOGARITHMIC_SEARCH = 20;
 
-	/*
-	 * motion vectors(dx, dy)
-	 */
-	public void main( String[] args )
-	{
-
-	}
-
 	/**
 	 * Arguments: 2 coordinates and one coordinate array of size two to which
 	 * the the motion vector will be stored.
@@ -50,6 +42,55 @@ public class Prep {
 		ImageJr errorImg = new ImageJr( padTarget.getW(), padTarget.getH() );
 		int[][] targetFrm = padTarget.imageJrTo2DArray();
 		int[][] referenceFrm = padRef.imageJrTo2DArray();
+		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
+
+		for ( int y = 0; y < targetFrm.length; y += macroBlkSize ) {
+			for ( int x = 0; x < targetFrm[y].length; x += macroBlkSize ) {
+
+				// find predicted block
+				bestMatch = sequentialSearchMSD( targetFrm, referenceFrm, x, y,
+						p, macroBlkSize );
+				
+				// store motion vector x
+				motionCompensation[y][x][1] = x - bestMatch.getxTopLeft();
+				motionCompensation[y][x][2] = y - bestMatch.getyTopLeft();
+
+				// store each error_pixel_value
+				for ( int i = 0; i < macroBlkSize; i++ ) {
+					for ( int j = 0; j < macroBlkSize; j++ ) {
+
+						if ( ( bestMatch.getxTopLeft() + j ) < referenceFrm[0].length
+								&& ( bestMatch.getyTopLeft() + i ) < referenceFrm.length
+								&& ( x + j ) < referenceFrm[0].length
+								&& ( y + i ) < referenceFrm.length ) {
+
+							motionCompensation[y + i][x + j][0] = Math
+									.abs( targetFrm[y + i][x + j]
+											- referenceFrm[bestMatch
+													.getyTopLeft() + i][bestMatch
+													.getxTopLeft() + j] );
+
+							errorImg.setPixel( x + j, y + i,
+									motionCompensation[y + i][x + j][0] );
+
+						}
+					}
+				}
+			}// loop col ends
+		}// loop row ends
+	}
+
+	public void MC_display_error( ImageJr targetImg, String imgNameT,
+			ImageJr referenceImg, String imgNameRef, int p,
+			int matchingCriteria, ImageJr residualImg,
+			int[][][] motionCompensation, int macroBlkSize )
+			throws InterruptedException, IOException
+	{
+		ImageJr padTarget = targetImg.padImage( macroBlkSize );
+		ImageJr padRef = referenceImg.padImage( macroBlkSize );
+		ImageJr errorImg = new ImageJr( padTarget.getW(), padTarget.getH() );
+		int[][] targetFrm = padTarget.imageJrTo2DArray();
+		int[][] referenceFrm = padRef.imageJrTo2DArray();
 		/* [0] = error value, [1] = motion vector x, [2] = motion vector y */
 		// motionCompensation = new int[padTarget.getH()][padTarget.getW()][3];
 		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
@@ -64,8 +105,8 @@ public class Prep {
 				// DEBUG
 				if ( x > debugX && y > debugY && x < debugX + 10
 						&& y < debugY + 10 ) {
-//					System.out.println( "\n[@x,y=" + x + "," + y + "]:\t"
-//							+ bestMatch.toString() );
+					// System.out.println( "\n[@x,y=" + x + "," + y + "]:\t"
+					// + bestMatch.toString() );
 				}
 
 				// store motion vector x
@@ -109,9 +150,9 @@ public class Prep {
 		 * from the reference frame -
 		 */
 
-		 mappedError.display( "error image" );
-		 mappedError.write2PPM( "out.ppm" );
-		 Thread.sleep( 10000 );
+		mappedError.display( "error image" );
+		mappedError.write2PPM( "out.ppm" );
+		Thread.sleep( 10000 );
 
 		// DEBUG
 		System.out.println( "motion compensation[][]:" );
@@ -282,7 +323,7 @@ public class Prep {
 			}
 			System.out.println();
 		}
-mappedError.write2PPM( "log_search_out.ppm" );
+		mappedError.write2PPM( "log_search_out.ppm" );
 		mappedError.display( "error" );
 		Thread.sleep( 4000 );
 	}// note that macroblock sizse would affect the compression ratio
@@ -422,8 +463,8 @@ mappedError.write2PPM( "log_search_out.ppm" );
 			for ( int j = startX; j < stopX; j++ ) {
 
 				if ( !( i == ty0 && j == ty0 ) ) {
-//					System.out.println( "conditions met @ y,x=i,j=" + i + ","
-//							+ j );
+					// System.out.println( "conditions met @ y,x=i,j=" + i + ","
+					// + j );
 
 					diffs.add( new ReferenceFrameBlock( j, i, meanSquareDiff(
 							target, reference, tx0, ty0, j, i, macroBlkSize ) ) );
@@ -433,7 +474,7 @@ mappedError.write2PPM( "log_search_out.ppm" );
 
 		// debug
 		// System.out.print( "[@x,y=" + tx0 + "," + ty0 + "]:" );
-	//	 System.out.println( diffs );
+		// System.out.println( diffs );
 		return findMinDiff( diffs );
 	}
 

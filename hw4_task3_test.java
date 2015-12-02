@@ -1,6 +1,10 @@
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.Test;
@@ -8,32 +12,51 @@ import org.junit.Test;
 public class hw4_task3_test {
 
 	// @Test
-	public void test_getTop3() throws InterruptedException, IOException
+	public void test_readFilesFromADirectory()
 	{
 		Task3 t3 = new Task3();
-		Prep pp = new Prep();
-		int targetNum = 59;
-
-		Similarity[] sims = new Similarity[3];
-		sims = t3.getTop3SimilarFrames( 4, 16, targetNum );
-		for ( Similarity similarity : sims ) {
-			System.out.println( sims.toString() );
+		File directory = new File( "IDB" );
+		File[] imageData = directory.listFiles();
+		List<File> images = new ArrayList<File>();
+		for ( File file : imageData ) {
+			images.add( file );
 		}
 	}
 
+	// @Test
+	public void test_getIndexOfTargetImage() throws InterruptedException,
+			IOException
+	{
+		Task3 t3 = new Task3();
+		String directoryName = "IDB";
+		String imgNameT = "Walk_005.ppm";
+		File directory = new File( directoryName );
+		File[] imageData = directory.listFiles();
+		System.out.println( t3.getIndexOfTargetImage( imgNameT, imageData ) );
+
+		// getIndexOfTargetImage
+	}
+
 	@Test
+	public void test_getTop3() throws InterruptedException, IOException
+	{
+		Task3 t3 = new Task3();
+//		t3.getTop3SimilarFrames( 4, 16 );
+		t3.getTop3_test(  4, 16 );
+
+		}
+
+	// @Test
 	public void test_getTop3_sml() throws InterruptedException, IOException
 	{
 		Task3 t3 = new Task3();
-		Prep pp = new Prep();
 		int targetNum = 59;
 
-		Similarity[] sims = t3.getTop3SimilarFrames_sml( 4, 16, targetNum );
-		for ( Similarity similarity : sims ) {
-			System.out.println( similarity.toString() );
-		}
-		
-		
+		t3.getTop3SimilarFrames( 4, 16 );
+
+		// for ( Similarity similarity : sims ) {
+		// System.out.println( similarity.toString() );
+		// }
 	}
 
 	// @Test

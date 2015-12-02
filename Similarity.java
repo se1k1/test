@@ -22,18 +22,49 @@ public class Similarity implements Comparable<Similarity> {
 		referenceFrmIdx = idxR;
 	}
 
-	// public int getSimPercentage()
-	// {
-	// return 0;
-	// }
+	public int getMv()
+	{
+		return mv;
+	}
+
+	public void setMv( int mv )
+	{
+		this.mv = mv;
+	}
+
+	public int getDiff()
+	{
+		return diff;
+	}
+
+	public void setDiff( int diff )
+	{
+		this.diff = diff;
+	}
+
+	public int getTargetFrmIdx()
+	{
+		return targetFrmIdx;
+	}
+
+	public void setTargetFrmIdx( int targetFrmIdx )
+	{
+		this.targetFrmIdx = targetFrmIdx;
+	}
+
+	public int getReferenceFrmIdx()
+	{
+		return referenceFrmIdx;
+	}
+
+	public void setReferenceFrmIdx( int referenceFrmIdx )
+	{
+		this.referenceFrmIdx = referenceFrmIdx;
+	}
+
 	@Override
 	public int compareTo( Similarity o )
 	{
-		/*
-		 * sim[0]=mv, sim[1]=diff, sim[2]=distFrm, sim[3]=target frame index ,
-		 * sim[4]=reference frame index
-		 */
-
 		// asc
 		if ( mv == o.mv ) {
 

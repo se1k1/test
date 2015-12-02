@@ -1,4 +1,3 @@
-
 import java.io.*;
 import java.util.*;
 import java.awt.*;
@@ -23,16 +22,17 @@ public class Image {
 		height = h;
 
 		img = new BufferedImage( width, height, BufferedImage.TYPE_INT_RGB );
-//		System.out.println( "Created an empty image with size " + width + "x"
-//				+ height );
+		// System.out.println( "Created an empty image with size " + width + "x"
+		// + height );
 	}
 
 	public Image( String fileName )
 	// Create an image and read the data from the file
 	{
 		readPPM( fileName );
-//		System.out.println( "Created an image from " + fileName + " with size "
-//				+ width + "x" + height );
+		// System.out.println( "Created an image from " + fileName +
+		// " with size "
+		// + width + "x" + height );
 	}
 
 	public int getW()
@@ -139,7 +139,7 @@ public class Image {
 			fis = new FileInputStream( fileName );
 			dis = new DataInputStream( fis );
 
-			System.out.println( "Reading " + fileName + "..." );
+			// System.out.println( "Reading " + fileName + "..." );
 
 			// read Identifier
 			if ( !dis.readLine().equals( "P6" ) ) {
@@ -181,7 +181,7 @@ public class Image {
 			dis.close();
 			fis.close();
 
-			System.out.println( "Read " + fileName + " Successfully." );
+			// System.out.println( "Read " + fileName + " Successfully." );
 
 		} // try
 		catch ( Exception e ) {
