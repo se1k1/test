@@ -34,7 +34,7 @@ public class Task3 extends Prep {
 		targetImg = new ImageJr( imgNameT );
 		int[] paddedSize = new int[2];
 		targetImg.paddedSize( macroBlkSize, paddedSize );
-		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];
+		float[][][] MC = new float[paddedSize[1]][paddedSize[0]][3];
 		// loop through all IDB to get 3 most similar frames
 		for ( int i = 1; i <= similarities.length; i++ ) {
 			if ( i == targetNum ) {
@@ -126,7 +126,7 @@ public class Task3 extends Prep {
 		targetImg = new ImageJr( directoryName + "\\" + imgNameT );
 		int[] paddedSize = new int[2];
 		targetImg.paddedSize( macroBlkSize, paddedSize );
-		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];
+		float[][][] MC = new float[paddedSize[1]][paddedSize[0]][3];
 		int targetNum = getIndexOfTargetImage( imgNameT, imageData );
 
 		// loop through all IDB to get 3 most similar frames
@@ -207,7 +207,7 @@ public class Task3 extends Prep {
 		targetImg = new ImageJr( directoryName + "\\" + imgNameT );
 		int[] paddedSize = new int[2];
 		targetImg.paddedSize( macroBlkSize, paddedSize );
-		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];
+		float[][][] MC = new float[paddedSize[1]][paddedSize[0]][3];
 		int targetNum = getIndexOfTargetImage( imgNameT, imageData );
 
 		// loop through all IDB to get 3 most similar frames
@@ -269,7 +269,7 @@ public class Task3 extends Prep {
 		targetImg = new ImageJr( directoryName + "\\" + imgNameT );
 		int[] paddedSize = new int[2];
 		targetImg.paddedSize( macroBlkSize, paddedSize );
-		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];
+		float[][][] MC = new float[paddedSize[1]][paddedSize[0]][3];
 		int targetNum = getIndexOfTargetImage( imgNameT, imageData );
 
 		// loop through all IDB to get 6 most similar frames
@@ -373,7 +373,7 @@ public class Task3 extends Prep {
 	 * sim[0]=mv, sim[1]=diff, sim[2]=distFrm, sim[3]=target frame index ,
 	 * sim[4]=reference frame index
 	 */
-	public Similarity measureSimilarity( int[][][] MC, int frameIdxT,
+	public Similarity measureSimilarity( float[][][] mC, int frameIdxT,
 			int frameIdxR )
 	{
 		/*
@@ -382,16 +382,16 @@ public class Task3 extends Prep {
 		 * simply the sum of all pixel value. The - smaller the value is, the
 		 * better.
 		 */
-		int sumMV = 0, sumDiff = 0;
-		for ( int i = 0; i < MC.length; i++ ) {
-			for ( int j = 0; j < MC[0].length; j++ ) {
+		float sumMV = 0, sumDiff = 0;
+		for ( int i = 0; i < mC.length; i++ ) {
+			for ( int j = 0; j < mC[0].length; j++ ) {
 
 				// compute mv sim
-				sumMV = sumMV + Math.abs( MC[i][j][1] )
-						+ Math.abs( MC[i][j][2] );
+				sumMV = sumMV + Math.abs( mC[i][j][1] )
+						+ Math.abs( mC[i][j][2] );
 
 				// compute diff sim
-				sumDiff += MC[i][j][0];
+				sumDiff += mC[i][j][0];
 			}
 		}
 

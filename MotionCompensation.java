@@ -1,44 +1,55 @@
 public class MotionCompensation {
-	private int[] motionVector = new int[2];
-	private int[][] residual;
+	private float mvX=0,mvY=0;
+	private float residual;
 	private int macroBlkSize = 16;
 
 	public MotionCompensation()
 	{
 	}
 
-	// public MotionCompensation( int[] motionVector, ReferenceFrameBlock rfBlk,
-	// int macroBlkSize )
-	// {
-	// this.motionVector = motionVector;
-	// this.residual = residual;
-	// this.macroBlkSize = macroBlkSize;
-	// }
-
-	public MotionCompensation( int[] motionVector, int[][] residual,
+	public MotionCompensation( float mvX, float mvY,
 			int macroBlkSize )
 	{
-		this.motionVector = motionVector;
+		this.mvX = mvX;
+		this.mvY = mvY;
+		this.macroBlkSize = macroBlkSize;
+	}
+	
+	public MotionCompensation( float mvX, float mvY, float residual,
+			int macroBlkSize )
+	{
+		this.mvX = mvX;
+		this.mvY = mvY;
 		this.residual = residual;
 		this.macroBlkSize = macroBlkSize;
 	}
 
-	public int[] getMotionVector()
+	public float getMvX()
 	{
-		return motionVector;
+		return mvX;
 	}
 
-	public void setMotionVector( int[] motionVector )
+	public void setMvX( float mvX )
 	{
-		this.motionVector = motionVector;
+		this.mvX = mvX;
 	}
 
-	public int[][] getResidual()
+	public float getMvY()
+	{
+		return mvY;
+	}
+
+	public void setMvY( float mvY )
+	{
+		this.mvY = mvY;
+	}
+
+	public float getResidual()
 	{
 		return residual;
 	}
 
-	public void setResidual( int[][] residual )
+	public void setResidual( float residual )
 	{
 		this.residual = residual;
 	}
@@ -52,5 +63,10 @@ public class MotionCompensation {
 	{
 		this.macroBlkSize = macroBlkSize;
 	}
+
+
+	
+
+
 
 }

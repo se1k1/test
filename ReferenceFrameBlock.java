@@ -1,6 +1,6 @@
 public class ReferenceFrameBlock {
-	private int xTopLeft = 0, yTopLeft = 0;
-	//private float xTopLeft = 0, yTopLeft = 0;
+	//private int xTopLeft = 0, yTopLeft = 0;
+	private float xTopLeft = 0, yTopLeft = 0;
 
 	private float diffValue = 0;
 	static int idSeed = 0;
@@ -18,7 +18,21 @@ public class ReferenceFrameBlock {
 		refFrmId = idSeed++;
 	}
 
+	public ReferenceFrameBlock( float x, float y )
+	{
+		xTopLeft = x;
+		yTopLeft = y;
+		refFrmId = idSeed++;
+	}
+
 	public ReferenceFrameBlock( int x, int y, float diffVal )
+	{
+		xTopLeft = x;
+		yTopLeft = y;
+		diffValue = diffVal;
+		refFrmId = idSeed++;
+	}
+	public ReferenceFrameBlock( float x, float y, float diffVal )
 	{
 		xTopLeft = x;
 		yTopLeft = y;

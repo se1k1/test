@@ -28,7 +28,7 @@ public class hw4_test {
 		int macroBlkSize = 16;
 		t22.paddedSize( macroBlkSize, paddedSize );
 		System.out.println( "width:" + paddedSize[0] + "\t" + paddedSize[1] );
-		int[][][] motionCompensation = new int[paddedSize[1]][paddedSize[0]][3];
+		float[][][] motionCompensation = new float[paddedSize[1]][paddedSize[0]][3];
 		// ij.display_ks( "walk 57" );
 		// Thread.sleep( 3000 );
 
@@ -49,12 +49,12 @@ public class hw4_test {
 	}
 
 	// @Test
-	public void test_mc() throws InterruptedException, IOException
+	public void test_mc_regular() throws InterruptedException, IOException
 	{
 		// int x = 70, y = 70;
 		Prep pp = new Prep();
-		String targetName = "Walk_060.ppm";
-		String refName = "Walk_058.ppm";
+		String targetName = "IDB/Walk_060.ppm";
+		String refName = "IDB/Walk_058.ppm";
 		// String targetName = "Walk_022.ppm";
 		// String refName = "Walk_022.ppm";
 
@@ -65,12 +65,45 @@ public class hw4_test {
 		int macroBlkSize = 16;
 		t22.paddedSize( macroBlkSize, paddedSize );
 		System.out.println( "width:" + paddedSize[0] + "\t" + paddedSize[1] );
-		int[][][] motionCompensation = new int[paddedSize[1]][paddedSize[0]][3];
+		// float[][][] motionCompensation = new
+		// float[paddedSize[1]][paddedSize[0]][3];
 		// ij.display_ks( "walk 57" );
 		// Thread.sleep( 3000 );
 
-		pp.MC( t22, targetName, r20, refName, 12, 0, residual,
-				motionCompensation, macroBlkSize );
+		pp.MC_regular( t22, targetName, r20, refName, 12, 0, residual,
+				macroBlkSize );
+		// pp.MC( t22, targetName, r20, refName, 12, 0, residual,
+		// motionCompensation, macroBlkSize );
+
+	}
+
+	 @Test
+	public void test_mc() throws InterruptedException, IOException
+	{
+		// int x = 70, y = 70;
+		Prep pp = new Prep();
+		String targetName = "IDB/Walk_060.ppm";
+		String refName = "IDB/Walk_058.ppm";
+		// String targetName = "Walk_022.ppm";
+		// String refName = "Walk_022.ppm";
+
+		ImageJr t22 = new ImageJr( targetName );
+		ImageJr r20 = new ImageJr( refName );
+		ImageJr residual = new ImageJr();
+		int[] paddedSize = new int[2];
+		int macroBlkSize = 16;
+		t22.paddedSize( macroBlkSize, paddedSize );
+		System.out.println( "width:" + paddedSize[0] + "\t" + paddedSize[1] );
+		// float[][][] motionCompensation = new
+		// float[paddedSize[1]][paddedSize[0]][3];
+		// ij.display_ks( "walk 57" );
+		// Thread.sleep( 3000 );
+
+		List<MotionCompensation> mc = pp.MC_w_half_pixel_accuracy( t22, targetName, r20, refName, 12, 0,
+				residual, macroBlkSize );
+		pp.printMC( mc, macroBlkSize, t22.getW(),	t22.getH() );
+		// pp.MC( t22, targetName, r20, refName, 12, 0, residual,
+		// motionCompensation, macroBlkSize );
 
 	}
 

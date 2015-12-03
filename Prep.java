@@ -32,7 +32,62 @@ public class Prep {
 		coordinate[1] = y1 - y0;
 	}
 
+	/** float motionCompensation */
 	public void MC( ImageJr targetImg, String imgNameT, ImageJr referenceImg,
+			String imgNameRef, int p, int matchingCriteria,
+			ImageJr residualImg, float[][][] motionCompensation,
+			int macroBlkSize ) throws InterruptedException, IOException
+	{
+		ImageJr padTarget = targetImg.padImage( macroBlkSize );
+		ImageJr padRef = referenceImg.padImage( macroBlkSize );
+		ImageJr errorImg = new ImageJr( padTarget.getW(), padTarget.getH() );
+		int[][] targetFrm = padTarget.imageJrTo2DArray();
+		int[][] referenceFrm = padRef.imageJrTo2DArray();
+		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
+
+		for ( int y = 0; y < targetFrm.length; y += macroBlkSize ) {
+			for ( int x = 0; x < targetFrm[y].length; x += macroBlkSize ) {
+
+				// find predicted block
+				bestMatch = sequentialSearchMSD( targetFrm, referenceFrm, x, y,
+						p, macroBlkSize );
+
+				// store motion vector x
+				motionCompensation[y][x][1] = x - bestMatch.getxTopLeft();
+				motionCompensation[y][x][2] = y - bestMatch.getyTopLeft();
+
+				// store each error_pixel_value
+				for ( int i = 0; i < macroBlkSize; i++ ) {
+					for ( int j = 0; j < macroBlkSize; j++ ) {
+
+						if ( ( bestMatch.getxTopLeft() + j ) < referenceFrm[0].length
+								&& ( bestMatch.getyTopLeft() + i ) < referenceFrm.length
+								&& ( x + j ) < referenceFrm[0].length
+								&& ( y + i ) < referenceFrm.length ) {
+
+							motionCompensation[y + i][x + j][0] = Math
+									.abs( targetFrm[y + i][x + j]
+											- referenceFrm[(int) ( bestMatch
+													.getyTopLeft() + i )][(int) ( bestMatch
+													.getxTopLeft() + j )] );
+
+							errorImg.setPixel( x + j, y + i,
+									(int) motionCompensation[y + i][x + j][0] );
+
+						}
+					}
+				}
+			}// loop col ends
+		}// loop row ends
+		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
+				targetImg.getH() );
+		ImageJr mappedError = mapResidual( errorDepadded );
+		mappedError.display( "error image" );
+		mappedError.write2PPM( "out.ppm" );
+		Thread.sleep( 10000 );
+	}
+
+	public void MCi( ImageJr targetImg, String imgNameT, ImageJr referenceImg,
 			String imgNameRef, int p, int matchingCriteria,
 			ImageJr residualImg, int[][][] motionCompensation, int macroBlkSize )
 			throws InterruptedException, IOException
@@ -52,8 +107,10 @@ public class Prep {
 						p, macroBlkSize );
 
 				// store motion vector x
-				motionCompensation[y][x][1] = x - bestMatch.getxTopLeft();
-				motionCompensation[y][x][2] = y - bestMatch.getyTopLeft();
+				motionCompensation[y][x][1] = (int) ( x - bestMatch
+						.getxTopLeft() );
+				motionCompensation[y][x][2] = (int) ( y - bestMatch
+						.getyTopLeft() );
 
 				// store each error_pixel_value
 				for ( int i = 0; i < macroBlkSize; i++ ) {
@@ -66,12 +123,12 @@ public class Prep {
 
 							motionCompensation[y + i][x + j][0] = Math
 									.abs( targetFrm[y + i][x + j]
-											- referenceFrm[bestMatch
-													.getyTopLeft() + i][bestMatch
-													.getxTopLeft() + j] );
+											- referenceFrm[(int) ( bestMatch
+													.getyTopLeft() + i )][(int) ( bestMatch
+													.getxTopLeft() + j )] );
 
 							errorImg.setPixel( x + j, y + i,
-									motionCompensation[y + i][x + j][0] );
+									(int) motionCompensation[y + i][x + j][0] );
 
 						}
 					}
@@ -80,10 +137,11 @@ public class Prep {
 		}// loop row ends
 	}
 
+	/** take float[][][] for MC storage */
 	public void MC_w_half_pixel_accuracy( ImageJr targetImg, String imgNameT,
 			ImageJr referenceImg, String imgNameRef, int p,
 			int matchingCriteria, ImageJr residualImg,
-			int[][][] motionCompensation, int macroBlkSize )
+			float[][][] motionCompensation, int macroBlkSize )
 			throws InterruptedException, IOException
 	{
 		ImageJr padTarget = targetImg.padImage( macroBlkSize );
@@ -115,24 +173,157 @@ public class Prep {
 
 							motionCompensation[y + i][x + j][0] = Math
 									.abs( targetFrm[y + i][x + j]
-											- referenceFrm[bestMatch
-													.getyTopLeft() + i][bestMatch
+											- referenceFrm[(int) bestMatch
+													.getyTopLeft() + i][(int) bestMatch
 													.getxTopLeft() + j] );
 
 							errorImg.setPixel( x + j, y + i,
-									motionCompensation[y + i][x + j][0] );
+									(int) motionCompensation[y + i][x + j][0] );
 
 						}
 					}
 				}
 			}// loop col ends
 		}// loop row ends
+		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
+				targetImg.getH() );
+		ImageJr mappedError = mapResidual( errorDepadded );
+		mappedError.display( "error image" );
+		mappedError.write2PPM( "out.ppm" );
+		Thread.sleep( 10000 );
+	}
+
+	/** take returns List<MC> storage */
+	public List<MotionCompensation> MC_w_half_pixel_accuracy(
+			ImageJr targetImg, String imgNameT, ImageJr referenceImg,
+			String imgNameRef, int p, int matchingCriteria,
+			ImageJr residualImg, int macroBlkSize )
+			throws InterruptedException, IOException
+	{
+		ImageJr padTarget = targetImg.padImage( macroBlkSize );
+		ImageJr padRef = referenceImg.padImage( macroBlkSize );
+		ImageJr errorImg = new ImageJr( padTarget.getW(), padTarget.getH() );
+		int[][] targetFrm = padTarget.imageJrTo2DArray();
+		int[][] referenceFrm = padRef.imageJrTo2DArray();
+		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
+		List<MotionCompensation> mc_halfpx = new ArrayList<MotionCompensation>();
+		int tempResidual = 0, tempSumResidual = 0;
+
+		for ( int y = 0; y < targetFrm.length; y += macroBlkSize ) {
+			for ( int x = 0; x < targetFrm[y].length; x += macroBlkSize ) {
+
+				// find predicted block (best match)
+				bestMatch = sequentialSearchMSD_w_halfPixel_accuracy(
+						targetFrm, referenceFrm, x, y, p, macroBlkSize );
+
+				// store each error_pixel_value
+				tempSumResidual = 0;
+				for ( int i = 0; i < macroBlkSize; i++ ) {
+					for ( int j = 0; j < macroBlkSize; j++ ) {
+
+						if ( ( bestMatch.getxTopLeft() + j ) < referenceFrm[0].length
+								&& ( bestMatch.getyTopLeft() + i ) < referenceFrm.length
+								&& ( x + j ) < referenceFrm[0].length
+								&& ( y + i ) < referenceFrm.length ) {
+
+							tempResidual = Math.abs( targetFrm[y + i][x + j]
+									- referenceFrm[(int) bestMatch
+											.getyTopLeft() + i][(int) bestMatch
+											.getxTopLeft() + j] );
+							tempSumResidual += tempResidual;
+							errorImg.setPixel( x + j, y + i, tempResidual );
+
+						}// ends if
+					}// ends j iteration
+				}// ends i iteration
+
+				// add mc (mv and residual) to the list
+				mc_halfpx.add( new MotionCompensation( x
+						- bestMatch.getxTopLeft(), y - bestMatch.getyTopLeft(),
+						tempSumResidual ) );
+
+			}// loop col ends
+		}// loop row ends
+
+		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
+				targetImg.getH() );
+		ImageJr mappedError = mapResidual( errorDepadded );
+		mappedError.display( "error image" );
+		mappedError.write2PPM( "out.ppm" );
+		Thread.sleep( 3000 );
+		printTask1ResultToConsole( mc_halfpx, imgNameT, imgNameRef, targetFrm,
+				macroBlkSize, targetImg.getW(), targetImg.getH(),
+				tempSumResidual );
+		return mc_halfpx;
+	}
+
+	/** take returns List<MC> storage */
+	public List<MotionCompensation> MC_regular( ImageJr targetImg,
+			String imgNameT, ImageJr referenceImg, String imgNameRef, int p,
+			int matchingCriteria, ImageJr residualImg, int macroBlkSize )
+			throws InterruptedException, IOException
+	{
+		ImageJr padTarget = targetImg.padImage( macroBlkSize );
+		ImageJr padRef = referenceImg.padImage( macroBlkSize );
+		ImageJr errorImg = new ImageJr( padTarget.getW(), padTarget.getH() );
+		int[][] targetFrm = padTarget.imageJrTo2DArray();
+		int[][] referenceFrm = padRef.imageJrTo2DArray();
+		ReferenceFrameBlock bestMatch = new ReferenceFrameBlock();
+		List<MotionCompensation> mc_halfpx = new ArrayList<MotionCompensation>();
+		int tempResidual = 0, tempSumResidual = 0;
+
+		for ( int y = 0; y < targetFrm.length; y += macroBlkSize ) {
+			for ( int x = 0; x < targetFrm[y].length; x += macroBlkSize ) {
+
+				// find predicted block (best match)
+				bestMatch = sequentialSearchMSD( targetFrm, referenceFrm, x, y,
+						p, macroBlkSize );
+
+				// store each error_pixel_value
+				tempSumResidual = 0;
+				for ( int i = 0; i < macroBlkSize; i++ ) {
+					for ( int j = 0; j < macroBlkSize; j++ ) {
+
+						if ( ( bestMatch.getxTopLeft() + j ) < referenceFrm[0].length
+								&& ( bestMatch.getyTopLeft() + i ) < referenceFrm.length
+								&& ( x + j ) < referenceFrm[0].length
+								&& ( y + i ) < referenceFrm.length ) {
+
+							tempResidual = Math.abs( targetFrm[y + i][x + j]
+									- referenceFrm[(int) bestMatch
+											.getyTopLeft() + i][(int) bestMatch
+											.getxTopLeft() + j] );
+							tempSumResidual += tempResidual;
+							errorImg.setPixel( x + j, y + i, tempResidual );
+
+						}// ends if
+					}// ends j iteration
+				}// ends i iteration
+
+				// add mc (mv and residual) to the list
+				mc_halfpx.add( new MotionCompensation( x
+						- bestMatch.getxTopLeft(), y - bestMatch.getyTopLeft(),
+						tempSumResidual ) );
+
+			}// loop col ends
+		}// loop row ends
+
+		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
+				targetImg.getH() );
+		ImageJr mappedError = mapResidual( errorDepadded );
+		mappedError.display( "error image" );
+		mappedError.write2PPM( "out.ppm" );
+		Thread.sleep( 3000 );
+		printTask1ResultToConsole( mc_halfpx, imgNameT, imgNameRef, targetFrm,
+				macroBlkSize, targetImg.getW(), targetImg.getH(),
+				tempSumResidual );
+		return mc_halfpx;
 	}
 
 	public void MC_display_error( ImageJr targetImg, String imgNameT,
 			ImageJr referenceImg, String imgNameRef, int p,
 			int matchingCriteria, ImageJr residualImg,
-			int[][][] motionCompensation, int macroBlkSize )
+			float[][][] motionCompensation, int macroBlkSize )
 			throws InterruptedException, IOException
 	{
 		ImageJr padTarget = targetImg.padImage( macroBlkSize );
@@ -177,12 +368,12 @@ public class Prep {
 
 							motionCompensation[y + i][x + j][0] = Math
 									.abs( targetFrm[y + i][x + j]
-											- referenceFrm[bestMatch
-													.getyTopLeft() + i][bestMatch
+											- referenceFrm[(int) bestMatch
+													.getyTopLeft() + i][(int) bestMatch
 													.getxTopLeft() + j] );
 
 							errorImg.setPixel( x + j, y + i,
-									motionCompensation[y + i][x + j][0] );
+									(int) motionCompensation[y + i][x + j][0] );
 
 						}
 					}
@@ -256,8 +447,10 @@ public class Prep {
 					System.out.println( "\n[@x,y=" + x + "," + y + "]:\t"
 							+ bestMatch.toString() );
 				}
-				motionCompensation[y][x][1] = x - bestMatch.getxTopLeft();
-				motionCompensation[y][x][2] = y - bestMatch.getyTopLeft();
+				motionCompensation[y][x][1] = (int) ( x - bestMatch
+						.getxTopLeft() );
+				motionCompensation[y][x][2] = (int) ( y - bestMatch
+						.getyTopLeft() );
 
 				// store each error_pixel_value
 				for ( int i = 0; i < macroBlkSize; i++ ) {
@@ -270,12 +463,12 @@ public class Prep {
 
 							motionCompensation[y + i][x + j][0] = Math
 									.abs( targetFrm[y + i][x + j]
-											- referenceFrm[bestMatch
-													.getyTopLeft() + i][bestMatch
+											- referenceFrm[(int) bestMatch
+													.getyTopLeft() + i][(int) bestMatch
 													.getxTopLeft() + j] );
 
 							errorImg.setPixel( x + j, y + i,
-									motionCompensation[y + i][x + j][0] );
+									(int) motionCompensation[y + i][x + j][0] );
 
 						}
 					}
@@ -311,7 +504,7 @@ public class Prep {
 	public void MC_w_logSearch( ImageJr targetImg, String imgNameT,
 			ImageJr referenceImg, String imgNameRef, int p,
 			int matchingCriteria, ImageJr residualImg,
-			int[][][] motionCompensation, int macroBlkSize )
+			float[][][] motionCompensation, int macroBlkSize )
 			throws InterruptedException, IOException
 	{
 		ImageJr padTarget = targetImg.padImage( macroBlkSize );
@@ -344,12 +537,12 @@ public class Prep {
 
 							motionCompensation[y + i][x + j][0] = Math
 									.abs( targetFrm[y + i][x + j]
-											- referenceFrm[bestMatch
-													.getyTopLeft() + i][bestMatch
+											- referenceFrm[(int) bestMatch
+													.getyTopLeft() + i][(int) bestMatch
 													.getxTopLeft() + j] );
 
 							errorImg.setPixel( x + j, y + i,
-									motionCompensation[y + i][x + j][0] );
+									(int) motionCompensation[y + i][x + j][0] );
 
 						}
 					}
@@ -528,8 +721,9 @@ public class Prep {
 	}
 
 	/** half pixel accuracy MSD */
-	public ReferenceFrameBlock sequentialSearchMSD_w_halfPixel_accuracy( int[][] target,
-			int[][] reference, int tx0, int ty0, int p, int macroBlkSize )
+	public ReferenceFrameBlock sequentialSearchMSD_w_halfPixel_accuracy(
+			int[][] target, int[][] reference, int tx0, int ty0, int p,
+			int macroBlkSize )
 	{
 
 		// return the same block if diff < threshold
@@ -549,38 +743,48 @@ public class Prep {
 				+ p > target.length ? target[0].length : ty0 + p );
 
 		List<ReferenceFrameBlock> diffs = new ArrayList<ReferenceFrameBlock>();
-		// ------ original ----------------
-//		for ( int i = startY; i < stopY; i++ ) {
-//			for ( int j = startX; j < stopX; j++ ) {
-//
-//				if ( !( i == ty0 && j == ty0 ) ) {
-//					
-//					diffs.add( new ReferenceFrameBlock( j, i, meanSquareDiff(
-//							target, reference, tx0, ty0, j, i, macroBlkSize ) ) );
-//				}
-//			}
-//		}
-		ReferenceFrameBlock prev, next, between;
-		
-		// half pixel accuracy
-		for ( int i = startY; i < stopY; i+=2 ) {
-			for ( int j = startX; j < stopX; j+=2 ) {
+		ReferenceFrameBlock A = null, B = null, C = null, D = null, a = null, b = null, c = null, d = null;
 
-				if ( !( i == ty0 && j == ty0 ) ) {
-					prev=new ReferenceFrameBlock( j, i, meanSquareDiff(
-							target, reference, tx0, ty0, j, i, macroBlkSize ));
-					diffs.add(  );
+		// half pixel accuracy
+		for ( int i = startY; i < stopY; i += 2 ) {
+			for ( int j = startX; j < stopX; j += 2 ) {
+
+				A = new ReferenceFrameBlock( j, i, meanSquareDiff( target,
+						reference, tx0, ty0, j, i, macroBlkSize ) );
+
+				if ( j + 1 < reference[0].length ) {
+
+					B = new ReferenceFrameBlock( j + 1, i,
+							meanSquareDiff( target, reference, tx0, ty0, j + 1,
+									i, macroBlkSize ) );
 				}
-				if ( !( i == ty0 && j == ty0 ) ) {
-					
-					next= new ReferenceFrameBlock( j+1, i+1, meanSquareDiff(
-							target, reference, tx0, ty0, j+1, i+1, macroBlkSize ) ) ;
+				if ( i + 1 < reference.length ) {
+					C = new ReferenceFrameBlock( j, i + 1,
+							meanSquareDiff( target, reference, tx0, ty0, j,
+									i + 1, macroBlkSize ) );
+
 				}
-				
-				
+				if ( i + 1 < reference.length && j + 1 < reference[0].length ) {
+
+					D = new ReferenceFrameBlock( j + 1, i + 1, meanSquareDiff(
+							target, reference, tx0, ty0, j + 1, i + 1,
+							macroBlkSize ) );
+				}
+
+				a = A;
+				b = new ReferenceFrameBlock( (float) ( j + .5 ), (float) ( i ),
+						( A.getDiffValue() + B.getDiffValue() + 1 ) / 2 );
+				c = new ReferenceFrameBlock( (float) ( j ), (float) ( i + .5 ),
+						( A.getDiffValue() + C.getDiffValue() + 1 ) / 2 );
+				d = new ReferenceFrameBlock( (float) ( j + .5 ), (float) ( i ),
+						( A.getDiffValue() + B.getDiffValue()
+								+ C.getDiffValue() + D.getDiffValue() + 2 ) / 4 );
+
+				diffs.add( A );
+				diffs.add( between );
+				diffs.add( B );
 			}
 		}
-
 
 		// debug
 		// System.out.print( "[@x,y=" + tx0 + "," + ty0 + "]:" );
@@ -777,8 +981,8 @@ public class Prep {
 			}// ends for loop
 			p /= 2.;
 			ReferenceFrameBlock min = findMinDiff( diffs );
-			tx0 = min.getxTopLeft();
-			ty0 = min.getyTopLeft();
+			tx0 = (int) min.getxTopLeft();
+			ty0 = (int) min.getyTopLeft();
 			System.out.println( "in while loop, p=" + p );
 		}// ends while loop
 
@@ -953,7 +1157,8 @@ public class Prep {
 				System.out.println( "x,y=" + ref.getxTopLeft() + j + ", "
 						+ ref.getyTopLeft() + i );
 				for ( int j2 = 0; j2 < rgb.length; j2++ ) {
-					rgb[j2] = frm[ref.getxTopLeft() + j][ref.getyTopLeft() + i];
+					rgb[j2] = frm[(int) ref.getxTopLeft() + j][(int) ref
+							.getyTopLeft() + i];
 				}
 
 				img.setPixel( j, i, rgb );
@@ -1102,7 +1307,6 @@ public class Prep {
 			writer = new BufferedWriter( new OutputStreamWriter(
 					new FileOutputStream( "task1_ksawada_mv.txt" ), "utf-8" ) );
 
-			writer.write( "something" );
 			writer.write( "# Name: Kae Sawada" + "\n# Target image name: "
 					+ imgNameT + "\n# Reference image name: " + imgNameRef
 					+ "\n# Number of target macro blocks: "
@@ -1133,4 +1337,97 @@ public class Prep {
 
 	}
 
+	public void writeTask1ResultToFile(
+			List<MotionCompensation> motionCompensation, String imgNameT,
+			String imgNameRef, int[][] targetFrm, int macroBlkSize,
+			int targetImgW, int targetImgH, int p ) throws IOException
+	{
+
+		Writer writer = null;
+		try {
+			writer = new BufferedWriter( new OutputStreamWriter(
+					new FileOutputStream( "task1_ksawada_mv.txt" ), "utf-8" ) );
+
+			writer.write( "# Name: Kae Sawada" + "\n# Target image name: "
+					+ imgNameT + "\n# Reference image name: " + imgNameRef
+					+ "\n# Number of target macro blocks: "
+					+ ( targetFrm[0].length / macroBlkSize ) + " x "
+					+ targetFrm.length / macroBlkSize + " (image size is "
+					+ targetImgW + " x " + targetImgH + ")"
+					+ "\n# Macroblock size = " + macroBlkSize + "\t" + "p=" + p );
+
+			writer.write( "\n" );
+
+			for ( int i = 0; i < targetImgW * targetImgH; i++ ) {
+
+				writer.write( "[ " + motionCompensation.get( i ).getMvX()
+						+ ", " + motionCompensation.get( i ).getMvY() + " ] " );
+				if ( i % macroBlkSize == 0 ) {
+					writer.write( "\n" );
+				}
+			}
+
+		} catch ( Exception e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			writer.close();
+		}
+
+	}
+
+	public void printTask1ResultToConsole(
+			List<MotionCompensation> motionCompensation, String imgNameT,
+			String imgNameRef, int[][] targetFrm, int macroBlkSize,
+			int targetImgW, int targetImgH, int p ) throws IOException
+	{
+
+		System.out.println( "something" );
+		System.out.println( "# Name: Kae Sawada" + "\n# Target image name: "
+				+ imgNameT + "\n# Reference image name: " + imgNameRef
+				+ "\n# Number of target macro blocks: "
+				+ ( targetFrm[0].length / macroBlkSize ) + " x "
+				+ targetFrm.length / macroBlkSize + " (image size is "
+				+ targetImgW + " x " + targetImgH + ")"
+				+ "\n# Macroblock size = " + macroBlkSize + "\t" + "p=" + p );
+
+		System.out.println( "\n" );
+
+		int loopBoundOuter = targetImgH / macroBlkSize;
+		int loopBoundInner = targetImgW / macroBlkSize;
+		int idx = 0;
+		for ( int i = 0; i < loopBoundOuter; i++ ) {
+			for ( int j = 0; j < loopBoundInner; j++ ) {
+
+				System.out
+						.print( "[ " + motionCompensation.get( idx ).getMvX()
+								+ ", " + motionCompensation.get( idx ).getMvY()
+								+ " ] " );
+				idx++;
+			}
+			System.out.println();
+		}
+
+	}
+
+	public void printMC( List<MotionCompensation> motionCompensation,
+			int macroBlkSize, int targetImgW, int targetImgH )
+			throws IOException
+	{
+
+		int loopBoundOuter = targetImgH / macroBlkSize;
+		int loopBoundInner = targetImgW / macroBlkSize;
+		int idx = 0;
+		for ( int i = 0; i < loopBoundOuter; i++ ) {
+			for ( int j = 0; j < loopBoundInner; j++ ) {
+
+				System.out.print( "[ " + motionCompensation.get( idx ).getMvX()
+						+ ", " + motionCompensation.get( idx ).getMvY() + ", "
+						+ motionCompensation.get( idx ).getResidual() + " ] " );
+				idx++;
+			}
+			System.out.println();
+		}
+
+	}
 }

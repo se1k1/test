@@ -1,15 +1,24 @@
 
-
 public class Similarity implements Comparable<Similarity> {
 
-	private int mv;
-	private int diff;
+	private float mv;
+	private float diff;
 	// private int frmDistance;
 	private int targetFrmIdx;
 	private int referenceFrmIdx;
 
 	public Similarity()
 	{
+	}
+
+	public Similarity( float mv, float diff, int idxT, int idxR )
+	{
+		super();
+		this.mv = mv;
+		this.diff = diff;
+		// frmDistance = dist;
+		targetFrmIdx = idxT;
+		referenceFrmIdx = idxR;
 	}
 
 	public Similarity( int mv, int diff, int idxT, int idxR )
@@ -22,22 +31,22 @@ public class Similarity implements Comparable<Similarity> {
 		referenceFrmIdx = idxR;
 	}
 
-	public int getMv()
+	public float getMv()
 	{
 		return mv;
 	}
 
-	public void setMv( int mv )
+	public void setMv( float mv )
 	{
 		this.mv = mv;
 	}
 
-	public int getDiff()
+	public float getDiff()
 	{
 		return diff;
 	}
 
-	public void setDiff( int diff )
+	public void setDiff( float diff )
 	{
 		this.diff = diff;
 	}
@@ -71,21 +80,23 @@ public class Similarity implements Comparable<Similarity> {
 			if ( o.diff == diff ) {
 				if ( targetFrmIdx - referenceFrmIdx == o.targetFrmIdx
 						- o.referenceFrmIdx ) {
-					return referenceFrmIdx-o.referenceFrmIdx;
+					return referenceFrmIdx - o.referenceFrmIdx;
 				}
 				return Math.abs( targetFrmIdx - referenceFrmIdx )
 						- Math.abs( o.targetFrmIdx - o.referenceFrmIdx );
 			}
-			return diff - o.diff;
+			return Math.round( diff - o.diff );
 		}
-		return mv - o.mv;
+		return Math.round( mv - o.mv );
 	}
 
 	@Override
 	public String toString()
 	{
 		return "Similarity [mv=" + mv + ", diff=" + diff + ", targetFrmIdx="
-				+ targetFrmIdx + ", frm dist="+Math.abs(referenceFrmIdx-targetFrmIdx)+", referenceFrmIdx=" + referenceFrmIdx + "]";
+				+ targetFrmIdx + ", frm dist="
+				+ Math.abs( referenceFrmIdx - targetFrmIdx )
+				+ ", referenceFrmIdx=" + referenceFrmIdx + "]";
 	}
 
 }

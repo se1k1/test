@@ -74,7 +74,7 @@ public class hw4_task3_test {
 		int[] paddedSize = new int[2];
 		targetImg.paddedSize( macroBlkSize, paddedSize );
 		ImageJr residual = new ImageJr( paddedSize[0], paddedSize[1] );
-		int[][][] motionCompensation = new int[paddedSize[1]][paddedSize[0]][3];
+		float[][][] motionCompensation = new float[paddedSize[1]][paddedSize[0]][3];
 
 		Task3 t3 = new Task3();
 		int targetNum = 59, frameIdxR = 10, p = 4;
