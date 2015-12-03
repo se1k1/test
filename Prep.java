@@ -248,13 +248,12 @@ public class Prep {
 		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
 				targetImg.getH() );
 		ImageJr mappedError = mapResidual( errorDepadded );
-		// mappedError.display( "error image" );
-		// mappedError.write2PPM( "out.ppm" );
-		// Thread.sleep( 3000 );
-		// printTask1ResultToConsole( mc_halfpx, imgNameT, imgNameRef,
-		// targetFrm,
-		// macroBlkSize, targetImg.getW(), targetImg.getH(),
-		// tempSumResidual );
+		mappedError.display( "error image" );
+		mappedError.write2PPM( "out.ppm" );
+		Thread.sleep( 3000 );
+		printTask1ResultToConsole( mc_halfpx, imgNameT, imgNameRef, targetFrm,
+				macroBlkSize, targetImg.getW(), targetImg.getH(),
+				tempSumResidual );
 
 		return mc_halfpx;
 	}
@@ -262,8 +261,8 @@ public class Prep {
 	/** take returns List<MC> storage */
 	public List<MotionCompensation> MC_regular( ImageJr targetImg,
 			String imgNameT, ImageJr referenceImg, String imgNameRef, int p,
-			int matchingCriteria, ImageJr residualImg, int macroBlkSize )
-			throws InterruptedException, IOException
+			int matchingCriteria, ImageJr residualImg, int macroBlkSize,
+			boolean displayImg ) throws InterruptedException, IOException
 	{
 		ImageJr padTarget = targetImg.padImage( macroBlkSize );
 		ImageJr padRef = referenceImg.padImage( macroBlkSize );
@@ -310,15 +309,17 @@ public class Prep {
 			}// loop col ends
 		}// loop row ends
 
-		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
-				targetImg.getH() );
-		ImageJr mappedError = mapResidual( errorDepadded );
-		mappedError.display( "error image" );
-		mappedError.write2PPM( "out.ppm" );
-		Thread.sleep( 3000 );
-		printTask1ResultToConsole( mc_halfpx, imgNameT, imgNameRef, targetFrm,
-				macroBlkSize, targetImg.getW(), targetImg.getH(),
-				tempSumResidual );
+		if ( displayImg ) {
+			ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
+					targetImg.getH() );
+			ImageJr mappedError = mapResidual( errorDepadded );
+			mappedError.display( "error image" );
+			mappedError.write2PPM( "out.ppm" );
+			Thread.sleep( 3000 );
+			printTask1ResultToConsole( mc_halfpx, imgNameT, imgNameRef,
+					targetFrm, macroBlkSize, targetImg.getW(),
+					targetImg.getH(), tempSumResidual );
+		}
 		return mc_halfpx;
 	}
 
@@ -722,8 +723,11 @@ public class Prep {
 		return findMinDiff( diffs );
 	}
 
-	/** half pixel accuracy MSD 
-	 * @throws IOException */
+	/**
+	 * half pixel accuracy MSD
+	 * 
+	 * @throws IOException
+	 */
 	public ReferenceFrameBlock sequentialSearchMSD_w_halfPixel_accuracy(
 			int[][] target, int[][] reference, int tx0, int ty0, int p,
 			int macroBlkSize ) throws IOException
@@ -795,7 +799,7 @@ public class Prep {
 			}
 		}
 
-		writeDiffValuesToFile( diffs );
+		writeDiffValuesToFile( diffs, tx0, ty0 );
 		return findMinDiff( diffs );
 	}
 
@@ -1015,7 +1019,21 @@ public class Prep {
 		print2DArray( array );
 	}
 
-	public void print3DArray( int[][][] a )
+	public void print3DArrayI( int[][][] a )
+	{
+		for ( int i = 0; i < a.length; i++ ) {
+			for ( int j = 0; j < a[i].length; j++ ) {
+				System.out.print( "[ " );
+				for ( int j2 = 0; j2 < a[0][0].length; j2++ ) {
+					System.out.print( a[i][j][j2] + " " );
+				}
+				System.out.print( "]" );
+			}
+			System.out.println();
+		}
+	}
+
+	public void print3DArrayF( float[][][] a )
 	{
 		for ( int i = 0; i < a.length; i++ ) {
 			for ( int j = 0; j < a[i].length; j++ ) {
@@ -1373,12 +1391,9 @@ public class Prep {
 					writer.write( "[ " + motionCompensation.get( idx ).getMvX()
 							+ ", " + motionCompensation.get( idx ).getMvY()
 							+ " ] " );
-					if ( i % macroBlkSize == 0 ) {
-						writer.write( "\n" );
-					}
 					idx++;
 				}
-				System.out.println();
+				writer.write( "\n" );
 			}
 
 		} catch ( Exception e ) {
@@ -1390,18 +1405,25 @@ public class Prep {
 
 	}
 
-	public void writeDiffValuesToFile(
-			List<ReferenceFrameBlock> diffs,int tx0, int ty0) throws IOException
+	public void writeDiffValuesToFile( List<ReferenceFrameBlock> diffs,
+			int tx0, int ty0 ) throws IOException
 	{
 
 		Writer writer = null;
 		try {
 			writer = new BufferedWriter( new OutputStreamWriter(
-					new FileOutputStream( ".txt" ), "utf-8" ) );
+					new FileOutputStream( "diffs.txt" ), "utf-8" ) );
+
+			int i = 0;
 			// debug
-			writer.write( diffs );
-			System.out.println( "[@x,y=" + tx0 + ", " + ty0 + "]" + diffs );
-			
+			for ( ReferenceFrameBlock dif : diffs ) {
+				if ( i % 5 == 0 ) {
+					writer.write( "\n" );
+				}
+				writer.write( "[@x,y=" + tx0 + ", " + ty0 + "]"
+						+ dif.toString() + " " );
+				i++;
+			}
 
 		} catch ( Exception e ) {
 			// TODO Auto-generated catch block
@@ -1412,7 +1434,6 @@ public class Prep {
 
 	}
 
-	
 	public void printTask1ResultToConsole(
 			List<MotionCompensation> motionCompensation, String imgNameT,
 			String imgNameRef, int[][] targetFrm, int macroBlkSize,

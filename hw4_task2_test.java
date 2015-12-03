@@ -6,8 +6,42 @@ import java.util.Random;
 import org.junit.Test;
 
 public class hw4_task2_test {
+	@Test
+	public void test_task2_2b() throws InterruptedException, IOException
+	{
+		Task2 t2 = new Task2();
+		Prep pp = new Prep();
+		String imgNameT = "IDB\\Walk_060.ppm";
+		String imgNameRef = "IDB\\Walk_058.ppm";
+		// String targetName = "Walk_022.ppm";
+		// String refName = "Walk_022.ppm";
 
-	//@Test
+		ImageJr targetImg = new ImageJr( imgNameT );
+		ImageJr referenceImg = new ImageJr( imgNameRef );
+		ImageJr residualImg = new ImageJr();
+		int[] paddedSize = new int[2], thresholds = new int[3];
+		int macroBlkSize = 16, p = 12;
+		targetImg.paddedSize( macroBlkSize, paddedSize );
+		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];
+
+		// pp.MC( targetImg, imgNameT, referenceImg, imgNameRef, p, 0,
+		// residualImg, MC, macroBlkSize, thresholds );
+
+		t2.removeMovingObj02( "IDB/",targetImg, referenceImg, imgNameT, imgNameRef,
+				macroBlkSize, p );
+		// pp.print3DArray( MC );
+		System.out
+				.println( "motion compensation[][](outside the MC() method):" );
+		for ( int i = 0; i < MC.length; i += macroBlkSize ) {
+			for ( int j = 0; j < MC[0].length; j += macroBlkSize ) {
+				System.out.print( "[ " + MC[i][j][0] + ", " + MC[i][j][1]
+						+ ", " + MC[i][j][2] + " (" + j + "," + i + ")] " );
+			}
+			System.out.println();
+		}
+
+	}
+	// @Test
 	public void test_task2_2() throws InterruptedException, IOException
 	{
 		Task2 t2 = new Task2();
@@ -26,8 +60,8 @@ public class hw4_task2_test {
 		// pp.MC( targetImg, imgNameT, referenceImg, imgNameRef, p, 0,
 		// residualImg, MC, macroBlkSize, thresholds );
 
-		t2.removeMovingObj02( targetImg, referenceImg, imgNameT, imgNameRef,
-				MC, macroBlkSize, p );
+		//t2.removeMovingObj02( targetImg, referenceImg, imgNameT, imgNameRef,
+		//s		MC, macroBlkSize, p );
 		// pp.print3DArray( MC );
 		System.out
 				.println( "motion compensation[][](outside the MC() method):" );
@@ -41,13 +75,13 @@ public class hw4_task2_test {
 
 	}
 
-	@Test
+	//@Test
 	public void test_task2_1() throws InterruptedException, IOException
 	{
 		Task2 t2 = new Task2();
 		Prep pp = new Prep();
-		String imgNameT = "Walk_060.ppm";
-		String imgNameRef = "Walk_057.ppm";
+		String imgNameT = "IDB\\Walk_060.ppm";
+		String imgNameRef = "IDB\\Walk_058.ppm";
 		// String targetName = "Walk_022.ppm";
 		// String refName = "Walk_022.ppm";
 
@@ -63,7 +97,7 @@ public class hw4_task2_test {
 		// residualImg, MC, macroBlkSize, thresholds );
 
 		t2.removeMovingObj01( targetImg, referenceImg, imgNameT, imgNameRef,
-				MC, macroBlkSize, p );
+				macroBlkSize, p );
 		// pp.print3DArray( MC );
 		System.out
 				.println( "motion compensation[][](outside the MC() method):" );
@@ -84,7 +118,7 @@ public class hw4_task2_test {
 		Prep pp = new Prep();
 		int[][][] array = new int[10][10][3];
 		autoFill3dArray( array, 5, 10, 0, 3 );
-		pp.print3DArray( array );
+		pp.print3DArrayI( array );
 		int macroBlkSize = 1;
 
 		// test_highLowPercentileValues()
@@ -107,11 +141,11 @@ public class hw4_task2_test {
 		Prep pp = new Prep();
 		int[][][] array = new int[5][5][3];
 		autoFill3dArray( array, 1, 25, 0, 0 );
-		pp.print3DArray( array );
+		pp.print3DArrayI( array );
 		int macroBlkSize = 1, threshold = 3;
 		int tx0 = 1, ty0 = 1, p = 10;
-		int[] coordinate = t2.sequentiallySearchStaticNeighborBlk( array, tx0,
-				ty0, p, macroBlkSize, threshold );
+		float[] coordinate = t2.sequentiallySearchStaticNeighborBlk( array,
+				tx0, ty0, p, macroBlkSize, threshold );
 		System.out.println( coordinate[0] );// x
 		System.out.println( coordinate[1] );// y
 	}
