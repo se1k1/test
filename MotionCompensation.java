@@ -12,7 +12,7 @@ public class MotionCompensation {
 	{
 		this.mvX = mvX;
 		this.mvY = mvY;
-		this.macroBlkSize = macroBlkSize;
+	//	this.macroBlkSize = macroBlkSize;
 	}
 	
 	public MotionCompensation( float mvX, float mvY, float residual,
@@ -21,7 +21,7 @@ public class MotionCompensation {
 		this.mvX = mvX;
 		this.mvY = mvY;
 		this.residual = residual;
-		this.macroBlkSize = macroBlkSize;
+	//	this.macroBlkSize = macroBlkSize;
 	}
 
 	public float getMvX()

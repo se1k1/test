@@ -240,7 +240,7 @@ public class Prep {
 				// add mc (mv and residual) to the list
 				mc_halfpx.add( new MotionCompensation( x
 						- bestMatch.getxTopLeft(), y - bestMatch.getyTopLeft(),
-						tempSumResidual ) );
+						bestMatch.getDiffValue(), macroBlkSize ) );
 
 			}// loop col ends
 		}// loop row ends
@@ -248,12 +248,14 @@ public class Prep {
 		ImageJr errorDepadded = errorImg.depadImage( targetImg.getW(),
 				targetImg.getH() );
 		ImageJr mappedError = mapResidual( errorDepadded );
-		mappedError.display( "error image" );
-		mappedError.write2PPM( "out.ppm" );
-		Thread.sleep( 3000 );
-		printTask1ResultToConsole( mc_halfpx, imgNameT, imgNameRef, targetFrm,
-				macroBlkSize, targetImg.getW(), targetImg.getH(),
-				tempSumResidual );
+		// mappedError.display( "error image" );
+		// mappedError.write2PPM( "out.ppm" );
+		// Thread.sleep( 3000 );
+		// printTask1ResultToConsole( mc_halfpx, imgNameT, imgNameRef,
+		// targetFrm,
+		// macroBlkSize, targetImg.getW(), targetImg.getH(),
+		// tempSumResidual );
+
 		return mc_halfpx;
 	}
 
@@ -293,7 +295,7 @@ public class Prep {
 									- referenceFrm[(int) bestMatch
 											.getyTopLeft() + i][(int) bestMatch
 											.getxTopLeft() + j] );
-							tempSumResidual += tempResidual;
+							// tempSumResidual += tempResidual;
 							errorImg.setPixel( x + j, y + i, tempResidual );
 
 						}// ends if
@@ -303,7 +305,7 @@ public class Prep {
 				// add mc (mv and residual) to the list
 				mc_halfpx.add( new MotionCompensation( x
 						- bestMatch.getxTopLeft(), y - bestMatch.getyTopLeft(),
-						tempSumResidual ) );
+						bestMatch.getDiffValue(), macroBlkSize ) );
 
 			}// loop col ends
 		}// loop row ends
@@ -720,10 +722,11 @@ public class Prep {
 		return findMinDiff( diffs );
 	}
 
-	/** half pixel accuracy MSD */
+	/** half pixel accuracy MSD 
+	 * @throws IOException */
 	public ReferenceFrameBlock sequentialSearchMSD_w_halfPixel_accuracy(
 			int[][] target, int[][] reference, int tx0, int ty0, int p,
-			int macroBlkSize )
+			int macroBlkSize ) throws IOException
 	{
 
 		// return the same block if diff < threshold
@@ -781,14 +784,18 @@ public class Prep {
 								+ C.getDiffValue() + D.getDiffValue() + 2 ) / 4 );
 
 				diffs.add( A );
-				diffs.add( between );
+
 				diffs.add( B );
+				diffs.add( C );
+				diffs.add( D );
+				// diffs.add( a );
+				diffs.add( b );
+				diffs.add( c );
+				diffs.add( d );
 			}
 		}
 
-		// debug
-		// System.out.print( "[@x,y=" + tx0 + "," + ty0 + "]:" );
-		// System.out.println( diffs );
+		writeDiffValuesToFile( diffs );
 		return findMinDiff( diffs );
 	}
 
@@ -1240,11 +1247,11 @@ public class Prep {
 		// if(i%10==0){System.out.println();}
 		// System.out.print(list.get( i ) + " " );
 		// }
-		System.out.println();
-		System.out.println( list.size() );
-		System.out.println( list.size() * ( percentile ) );
-		System.out.println( "sum: " + sum );
-		System.out.println( "startIdx: " + startIdx );
+		// System.out.println();
+		// System.out.println( list.size() );
+		// System.out.println( list.size() * ( percentile ) );
+		// System.out.println( "sum: " + sum );
+		// System.out.println( "startIdx: " + startIdx );
 
 		return sum / ( list.size() - startIdx );
 
@@ -1339,7 +1346,7 @@ public class Prep {
 
 	public void writeTask1ResultToFile(
 			List<MotionCompensation> motionCompensation, String imgNameT,
-			String imgNameRef, int[][] targetFrm, int macroBlkSize,
+			String imgNameRef, /* int[][] targetFrm, */int macroBlkSize,
 			int targetImgW, int targetImgH, int p ) throws IOException
 	{
 
@@ -1351,20 +1358,27 @@ public class Prep {
 			writer.write( "# Name: Kae Sawada" + "\n# Target image name: "
 					+ imgNameT + "\n# Reference image name: " + imgNameRef
 					+ "\n# Number of target macro blocks: "
-					+ ( targetFrm[0].length / macroBlkSize ) + " x "
-					+ targetFrm.length / macroBlkSize + " (image size is "
-					+ targetImgW + " x " + targetImgH + ")"
-					+ "\n# Macroblock size = " + macroBlkSize + "\t" + "p=" + p );
+					+ ( targetImgW / macroBlkSize ) + " x " + targetImgH
+					/ macroBlkSize + " (image size is " + targetImgW + " x "
+					+ targetImgH + ")" + "\n# Macroblock size = "
+					+ macroBlkSize + "\t" + "p=" + p );
 
 			writer.write( "\n" );
 
-			for ( int i = 0; i < targetImgW * targetImgH; i++ ) {
-
-				writer.write( "[ " + motionCompensation.get( i ).getMvX()
-						+ ", " + motionCompensation.get( i ).getMvY() + " ] " );
-				if ( i % macroBlkSize == 0 ) {
-					writer.write( "\n" );
+			int loopBoundOuter = targetImgH / macroBlkSize;
+			int loopBoundInner = targetImgW / macroBlkSize;
+			int idx = 0;
+			for ( int i = 0; i < loopBoundOuter; i++ ) {
+				for ( int j = 0; j < loopBoundInner; j++ ) {
+					writer.write( "[ " + motionCompensation.get( idx ).getMvX()
+							+ ", " + motionCompensation.get( idx ).getMvY()
+							+ " ] " );
+					if ( i % macroBlkSize == 0 ) {
+						writer.write( "\n" );
+					}
+					idx++;
 				}
+				System.out.println();
 			}
 
 		} catch ( Exception e ) {
@@ -1376,6 +1390,29 @@ public class Prep {
 
 	}
 
+	public void writeDiffValuesToFile(
+			List<ReferenceFrameBlock> diffs,int tx0, int ty0) throws IOException
+	{
+
+		Writer writer = null;
+		try {
+			writer = new BufferedWriter( new OutputStreamWriter(
+					new FileOutputStream( ".txt" ), "utf-8" ) );
+			// debug
+			writer.write( diffs );
+			System.out.println( "[@x,y=" + tx0 + ", " + ty0 + "]" + diffs );
+			
+
+		} catch ( Exception e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			writer.close();
+		}
+
+	}
+
+	
 	public void printTask1ResultToConsole(
 			List<MotionCompensation> motionCompensation, String imgNameT,
 			String imgNameRef, int[][] targetFrm, int macroBlkSize,
