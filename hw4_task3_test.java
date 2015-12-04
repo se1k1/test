@@ -37,11 +37,12 @@ public class hw4_task3_test {
 		// getIndexOfTargetImage
 	}
 
-	// @Test
+	@Test
 	public void test_getTop3() throws InterruptedException, IOException
 	{
 		Task3 t3 = new Task3();
-		t3.getTop3SimilarFrames( 4, 16 );
+		// t3.getTop3SimilarFrames( 4, 16, "IDB" );
+		t3.getTop3SimilarFrames( 4, 16, "testIDB",2 );
 		// t3.getTop6_test( 4, 16 );
 
 	}
@@ -52,7 +53,7 @@ public class hw4_task3_test {
 		Task3 t3 = new Task3();
 		int targetNum = 59;
 
-		t3.getTop3SimilarFrames( 4, 16 );
+		t3.getTop3SimilarFrames( 4, 16, "testIDB",2 );
 
 		// for ( Similarity similarity : sims ) {
 		// System.out.println( similarity.toString() );

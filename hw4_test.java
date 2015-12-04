@@ -77,7 +77,7 @@ public class hw4_test {
 
 	}
 
-	// @Test
+	@Test
 	public void test_mc() throws InterruptedException, IOException
 	{
 		// int x = 70, y = 70;
@@ -103,7 +103,7 @@ public class hw4_test {
 		// List<MotionCompensation> mc = pp.MC_w_half_pixel_accuracy( t22,
 		// targetName, r20, refName, p, 0, residual, macroBlkSize );
 		List<MotionCompensation> mc = pp.MC_regular( t22, targetName, r20,
-				refName, 12, 0, residual, macroBlkSize, false );
+				refName, 12, 0, residual, macroBlkSize, true );
 		// pp.printMC( mc, macroBlkSize, t22.getW(), t22.getH() );
 		// pp.MC( t22, targetName, r20, refName, 12, 0, residual,
 		// motionCompensation, macroBlkSize );

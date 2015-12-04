@@ -6,20 +6,19 @@ import java.util.Random;
 import org.junit.Test;
 
 public class hw4_task2_test {
-	@Test
+	//@Test
 	public void test_task2_2b() throws InterruptedException, IOException
 	{
 		Task2 t2 = new Task2();
 		Prep pp = new Prep();
-		String imgNameT = "IDB\\Walk_060.ppm";
-		String imgNameRef = "IDB\\Walk_058.ppm";
-		// String targetName = "Walk_022.ppm";
-		// String refName = "Walk_022.ppm";
+//		String imgNameT = "IDB\\Walk_060.ppm";
+//		String imgNameRef = "IDB\\Walk_058.ppm";
+		 String imgNameT = "IDB\\Walk_042.ppm";
+		 String imgNameRef = "IDB\\Walk_040.ppm";
 
 		ImageJr targetImg = new ImageJr( imgNameT );
 		ImageJr referenceImg = new ImageJr( imgNameRef );
-		ImageJr residualImg = new ImageJr();
-		int[] paddedSize = new int[2], thresholds = new int[3];
+		int[] paddedSize = new int[2];
 		int macroBlkSize = 16, p = 12;
 		targetImg.paddedSize( macroBlkSize, paddedSize );
 		int[][][] MC = new int[paddedSize[1]][paddedSize[0]][3];

@@ -322,7 +322,7 @@ public class Prep {
 		}
 		return mc_halfpx;
 	}
-
+	
 	public void MC_display_error( ImageJr targetImg, String imgNameT,
 			ImageJr referenceImg, String imgNameRef, int p,
 			int matchingCriteria, ImageJr residualImg,

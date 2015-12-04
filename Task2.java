@@ -625,29 +625,20 @@ public class Task2 extends Prep {
 				if ( Math.abs( mcArray[i][j][1] ) > ( thresholds[1] )
 						|| Math.abs( mcArray[i][j][2] ) > ( thresholds[1] ) ) {
 
-					System.out.println( "mv larger than threshold[i,j=" + i
-							+ "," + j + "]" );
-					coordinateNeighborStaticBlk = sequentiallySearchStaticNeighborBlk(
-							mcArray, j, i, 2, macroBlkSize, thresholds[2] );
-					System.out.println( "naighbor static block: "
-							+ coordinateNeighborStaticBlk[0] + ", "
-							+ coordinateNeighborStaticBlk[1] );
+//					System.out.println( "mv larger than threshold[i,j=" + i
+//							+ "," + j + "]" );
+//					coordinateNeighborStaticBlk = sequentiallySearchStaticNeighborBlk(
+//							mcArray, j, i, 2, macroBlkSize, thresholds[2] );
+//					System.out.println( "naighbor static block: "
+//							+ coordinateNeighborStaticBlk[0] + ", "
+//							+ coordinateNeighborStaticBlk[1] );
 					replaceABlock( imgDirName, copyOftargetImg, j * macroBlkSize, i
 							* macroBlkSize, macroBlkSize );
-					// replaceABlock_debug( copyOftargetImg, j*macroBlkSize,
-					// i*macroBlkSize, macroBlkSize );
-					continue;
 				}
 			}
 		}
 		 copyOftargetImg.display( "replaced image" );
 		 Thread.sleep( 5000 );
-		// get thre
-		// int[][] movingObjCoordinates =
-		// sequentialySearchStaticNeighborBlk( MC, tx0, ty0, p, macroBlkSize,
-		// threshold )
-
-		// scan through macro blks in MC, and find moving objects
 	}
 
 //	public void removeMovingObj02_old( ImageJr targetImg, ImageJr refImg,
@@ -765,7 +756,7 @@ public class Task2 extends Prep {
 			int macroBlkSize ) throws InterruptedException
 	{
 
-		ImageJr fifthFrmImg = new ImageJr( imgDirName+"Walk_005.ppm" );
+		ImageJr fifthFrmImg = new ImageJr( imgDirName+"\\Walk_005.ppm" );
 		int[] rgb = new int[3];
 
 		for ( int i = 0; i < macroBlkSize; i++ ) {
